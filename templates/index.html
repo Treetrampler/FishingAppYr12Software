@@ -2,13 +2,17 @@
 
 {% block body%}
 
-<div class="login_wrapper">
-    <h1>Welcome to Catch!</h1>
-    <form action="{{ url_for('login') }}" method="post">
-        <input type="text" name="username_entry" placeholder="Username" required>
-        <input type="password" name="password_entry" placeholder="Password" required>
-        <button type="submit">Login</button>
-    </form>
+<div id="sidebar">
+    <h1>Catch</h1>
+    <ul>
+        <li><a href="{{ url_for('index') }}" class="nav_item">Feed</a></li>
+        <li><a href="{{ url_for('fish_identifier') }}" class="nav_item">Identifier</a></li>
+        <li><a href="{{ url_for('map') }}" class="nav_item">Map</a></li>
+        <li><a href="{{ url_for('fish_dex') }}" class="nav_item">Fish-Dex</a></li>
+        <li><a href="{{ url_for('access_login_page') }}" class="nav_item">Login</a></li>
+    </ul>
+</div>
+<div id="content">
 </div>
 
 {% endblock %}

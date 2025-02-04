@@ -1,0 +1,16 @@
+{% extends 'layout.html' %}
+
+{% block body%}
+
+<div class="login_wrapper">
+    <h1>Welcome to Catch!</h1>
+    <div class="login_form">
+        <form action="{{ url_for('login') }}" method="post">
+            <input type="text" name="username_entry" placeholder="Username" required>
+            <input type="password" name="password_entry" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
