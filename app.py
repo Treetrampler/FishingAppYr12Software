@@ -7,6 +7,9 @@ from markupsafe import escape
 app = Flask(__name__)
 app.secret_key = 'd3b07384d113edec49eaa6238ad5ff00c86c392bd62329c75b90dbd174ca03eb'
 
+def is_valid_username_or_password(item):
+    return isinstance(item,str) and 1<=len(item)<=255 and re.match(r"^[a-zA-Z0-9\s.,'-]+$", item)
+
 def init_db(): #initialize the database
     conn = sqlite3.connect('fishing_app.db')
     cursor = conn.cursor()
@@ -28,7 +31,13 @@ def index():
 def login():
     if request.method=='POST':
         username = request.form['username_entry']
+        if not is_valid_username_or_password(username):
+            flash('Invalid username, try again', 'error')
+            return redirect('/login')
         password = request.form['password_entry']
+        if not is_valid_username_or_password(password):
+            flash('Invalid password, try again', 'error')
+            return redirect('/login')
         conn = sqlite3.connect('fishing_app.db')
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM user_data WHERE username = ?', (username,))
@@ -38,6 +47,8 @@ def login():
             session['user_id'] = user[0]
             session['username'] = user[1]
             return redirect('/')
+        else:
+            flash('Invalid username or password.', 'error')
     return render_template('login_page.html')
 
 
@@ -45,7 +56,13 @@ def login():
 def register():
     if request.method == 'POST':
         username = request.form['username_entry']
+        if not is_valid_username_or_password(username):
+            flash('Invalid username, try again', 'error')
+            return redirect('/login')
         password = request.form['password_entry']
+        if not is_valid_username_or_password(password):
+            flash('Invalid password, try again', 'error')
+            return redirect('/login')
         hashed_password = generate_password_hash(password)
         conn = sqlite3.connect('fishing_app.db')
         cursor = conn.cursor()
