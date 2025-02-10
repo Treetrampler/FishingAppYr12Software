@@ -3,14 +3,14 @@
 {% block body%}
 
 <div id="login_wrapper">
-    <h1>Welcome to Catch!</h1>
+    <h1>Please Register Here</h1>
     <div class="login_form">
-        <form action="{{ url_for('login') }}" method="post">
+        <form action="{{ url_for('register') }}" method="post">
             <ul>
                 <li><input type="text" name="username_entry" placeholder="Username" required></li>
                 <li><input type="password" name="password_entry" placeholder="Password" required></li>
-                <li><a href="/register" class="register_button">Register</a></li>
-                <li><button type="submit">Login</button></li>
+                <li><a href="/login" class="register_button">Login</a></li>
+                <li><button type="submit">Register</button></li>
             </ul>
         </form>
     </div>
