@@ -77,6 +77,16 @@ def register():
             return redirect('/login')
     return render_template('register_page.html')
 
+@app.route('/profile')
+def profile():
+    if 'user_id' not in session:
+        return redirect('/login')
+    return render_template('profile.html', username=session['username'])
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/')
 
 @app.route('/fish_identifier', methods=['GET'])
 def fish_identifier():
@@ -85,7 +95,6 @@ def fish_identifier():
 @app.route('/map', methods=['GET'])
 def map():
     pass
-
 
 @app.route('/fish_dex', methods=['GET'])
 def fish_dex():

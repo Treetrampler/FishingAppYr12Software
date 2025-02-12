@@ -9,7 +9,12 @@
         <li><a href="{{ url_for('fish_identifier') }}" class="nav_item">Identifier</a></li>
         <li><a href="{{ url_for('map') }}" class="nav_item">Map</a></li>
         <li><a href="{{ url_for('fish_dex') }}" class="nav_item">Fish-Dex</a></li>
-        <li><a href="{{ url_for('login') }}" class="nav_item">Login</a></li>
+        {% if 'user_id' in session %}
+            <li><a href="{{ url_for('profile') }}" class="username-btn">{{ session['username'] }}</a></li>
+            <li><a href="{{ url_for('logout') }}" class="logout-btn">logout</a></li>
+        {% else %}
+            <li><a href="{{ url_for('login') }}" class="login-btn">Login</a></li>
+        {% endif %}
     </ul>
 </div>
 <div id="content">
