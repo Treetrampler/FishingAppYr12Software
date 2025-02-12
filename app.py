@@ -127,12 +127,13 @@ def create_post():
     if image:
         filename = secure_filename(image.filename)
         image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        relative_image_path = os.path.join('uploads', filename).replace("\\", "/")  # Store relative path
         image.save(image_path)
         
         conn = sqlite3.connect('fishing_app.db')
         cursor = conn.cursor()
         cursor.execute('INSERT INTO posts (user_id, image_path, caption) VALUES (?, ?, ?)', 
-                       (session['user_id'], image_path, caption))
+                       (session['user_id'], relative_image_path, caption))
         conn.commit()
         conn.close()
         

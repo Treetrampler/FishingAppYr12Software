@@ -37,10 +37,10 @@
     {% endif %}
     <div class="posts">
         {% for post in posts %}
-        <div class="post">
-            <img src="{{ url_for('static', filename=post.image_path) }}" alt="Post Image">
-            <p>{{ post.caption }}</p>
-        </div>
+            <div class="post">
+                <img src="{{ url_for('static', filename=post[0]) }}" alt="Post Image">
+                <p>{{ post[1] }}</p>
+            </div>
         {% endfor %}
     </div>
 </div>

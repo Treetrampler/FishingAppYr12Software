@@ -32,7 +32,6 @@
 .register_button{
     text-decoration: none;
     color: black;
-    font-size: clamp(16px, 5vw, 50px);
 }
 
 #sidebar {
@@ -96,7 +95,7 @@
     margin-top: 20px;
 }
 
-form {
+#content form {
     background-color: #fff;
     padding: 20px;
     border-radius: 10px;
@@ -107,8 +106,8 @@ form {
     margin-bottom: 20px;
 }
 
-form input[type="file"],
-form textarea {
+#content form input[type="file"],
+#content form textarea {
     width: 95%;
     padding: 10px;
     margin-bottom: 10px;
@@ -116,7 +115,7 @@ form textarea {
     border-radius: 5px;
 }
 
-form button {
+#content form button {
     width: 100%;
     padding: 10px;
     border: none;
@@ -126,7 +125,7 @@ form button {
     cursor: pointer;
 }
 
-form button:hover {
+#content form button:hover {
     background-color: #0056b3;
 }
 
