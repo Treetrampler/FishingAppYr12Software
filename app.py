@@ -1,22 +1,33 @@
 import sqlite3
 import re
+import os
 from flask import Flask, render_template, request, redirect, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from markupsafe import escape
 
 app = Flask(__name__)
 app.secret_key = 'd3b07384d113edec49eaa6238ad5ff00c86c392bd62329c75b90dbd174ca03eb'
+UPLOAD_FOLDER = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def is_valid_username_or_password(item):
     return isinstance(item,str) and 1<=len(item)<=255 and re.match(r"^[a-zA-Z0-9\s.,'-]+$", item)
 
-def init_db(): #initialize the database
+def init_db():
     conn = sqlite3.connect('fishing_app.db')
     cursor = conn.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS user_data
     (user_id INTEGER PRIMARY KEY AUTOINCREMENT, 
     username TEXT NOT NULL, 
     password TEXT NOT NULL)
+    ''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS posts
+    (post_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    image_path TEXT NOT NULL,
+    caption TEXT,
+    FOREIGN KEY(user_id) REFERENCES user_data(user_id))
     ''')
     conn.commit()
     conn.close()
@@ -25,7 +36,12 @@ init_db() #calls the function to init the db
 
 @app.route('/') #the main page, creates the home page
 def index():
-    return render_template('index.html')
+    conn = sqlite3.connect('fishing_app.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT posts.image_path, posts.caption, user_data.username FROM posts JOIN user_data ON posts.user_id = user_data.user_id ORDER BY posts.post_id DESC')
+    posts = cursor.fetchall()
+    conn.close()
+    return render_template('index.html', posts=posts)
 
 @app.route('/login', methods=['POST', 'GET']) #called when someone tries to login after entering username and pw
 def login():
@@ -99,6 +115,32 @@ def map():
 @app.route('/fish_dex', methods=['GET'])
 def fish_dex():
     pass
+
+@app.route('/create_post', methods=['POST'])
+def create_post():
+    if 'user_id' not in session:
+        return redirect('/login')
+    
+    image = request.files['image']
+    caption = request.form.get('caption')
+    
+    if image:
+        filename = secure_filename(image.filename)
+        image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        image.save(image_path)
+        
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO posts (user_id, image_path, caption) VALUES (?, ?, ?)', 
+                       (session['user_id'], image_path, caption))
+        conn.commit()
+        conn.close()
+        
+        flash('Post created successfully!', 'success')
+        return redirect('/')
+    else:
+        flash('Failed to create post. Please try again.', 'error')
+        return redirect('/')
 
 if __name__ == '__main__':
     app.run(debug=True)
