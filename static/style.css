@@ -2,6 +2,8 @@
     font-family: Arial, Helvetica, sans-serif;
 }
 
+/* CSS STYLING FOR THE LOGIN + REGISTER PAGES */
+
 #login_wrapper {
     width: 30%;
     border: 1px solid black;
@@ -33,6 +35,8 @@
     text-decoration: none;
     color: black;
 }
+
+/* CSS STYLING FOR THE MAIN TEMPLATE - THE SIDEBAR + NAV */
 
 #sidebar {
     width: clamp(150px, 20%, 300px);
@@ -87,6 +91,8 @@
 .nav_item:hover {
     color: darkgray;
 }
+
+/* CSS STYLING FOR THE CONTENT SECTION + HOME PAGE FEED DISPLAY */
 
 #content {
     display: flex;
@@ -164,7 +170,19 @@
     margin-top: 0;
 }
 
-/* Responsive Fix */
+/* CSS STYLING FOR THE FISH IDENTIFIER AI */
+
+.fish_ai_insert {
+    position: absolute;
+    top: 0;
+    left: clamp(150px, 20%, 300px); /* Leaves space for the sidebar */
+    width: calc(100% - clamp(150px, 20%, 300px)); /* Prevents overlap with the sidebar */
+    height: 100%;
+    border: 1px solid black; /* Remove default border */
+}
+
+/* CSS STYLING FOR RESPONSIVE STUFF */
+
 @media (max-width: 768px) {
     #sidebar {
         position: relative; /* Sidebar moves with content */
