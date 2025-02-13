@@ -116,11 +116,11 @@ def fish_identifier():
 
 @app.route('/map', methods=['GET'])
 def map():
-    pass
+    return render_template('map.html')
 
 @app.route('/fish_dex', methods=['GET'])
 def fish_dex():
-    pass
+    return render_template('fish_dex.html')
 
 @app.route('/create_post', methods=['POST'])
 def create_post():

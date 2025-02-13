@@ -1,40 +1,14 @@
-{% extends 'layout.html' %}
+{% extends 'main_layout.html' %}
 
 {% block body%}
 
-<div id="sidebar">
-    <h1>Catch</h1>
-    <ul>
-        <li><a href="{{ url_for('index') }}" class="nav_item">Feed</a></li>
-        <li><a href="{{ url_for('fish_identifier') }}" class="nav_item">Identifier</a></li>
-        <li><a href="{{ url_for('map') }}" class="nav_item">Map</a></li>
-        <li><a href="{{ url_for('fish_dex') }}" class="nav_item">Fish-Dex</a></li>
-        {% if 'user_id' in session %}
-            <li>
-                <a href="{{ url_for('profile') }}" class="username_btn">
-                    <img src="{{ url_for('static', filename='images/blank_profile_pic.png') }}" alt="Profile" class="profile-img">
-                    {{ session['username'] }}
-                </a>
-            </li>
-            <li><a href="{{ url_for('logout') }}" class="logout_btn">Logout</a></li>
-        {% else %}
-            <li>
-                <a href="{{ url_for('login') }}" class="login_btn">
-                    <img src="{{ url_for('static', filename='images/blank_profile_pic.png') }}" alt="Profile" class="profile-img">
-                    Login
-                </a>
-            </li>
-        {% endif %}
-    </ul>
-</div>
-<div id="content">
-    {% if 'user_id' in session %}
+{% if 'user_id' in session %}
     <form action="{{ url_for('create_post') }}" method="post" enctype="multipart/form-data">
         <input type="file" name="image" accept="image/*" required>
         <textarea name="caption" placeholder="Add a caption..."></textarea>
         <button type="submit">Post</button>
     </form>
-    {% endif %}
+{% endif %}
     <div class="posts">
         {% for post in posts %}
             <div class="post">
@@ -44,6 +18,5 @@
             </div>
         {% endfor %}
     </div>
-</div>
 
 {% endblock %}

@@ -35,7 +35,7 @@
 }
 
 #sidebar {
-    width: clamp(200px, 20%, 300px);
+    width: clamp(150px, 20%, 300px);
     height: 100%;
     position: fixed;
     top: 0;
@@ -180,5 +180,11 @@
 
     .posts {
         width: 100%;
+    }
+
+    .logout_btn {
+        position: relative;
+        text-align: center; /* Center the logout button */
+        display: inline-block; /* Ensure it behaves like other menu items */
     }
 }
