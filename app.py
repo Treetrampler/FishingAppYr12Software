@@ -7,6 +7,12 @@ from werkzeug.utils import secure_filename
 from markupsafe import escape
 
 app = Flask(__name__)
+
+@app.before_request
+def enforce_https():
+    if not request.is_secure:
+        return redirect(request.url.replace("http://", "https://"))
+
 app.secret_key = 'd3b07384d113edec49eaa6238ad5ff00c86c392bd62329c75b90dbd174ca03eb'
 UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -104,9 +110,9 @@ def logout():
     session.clear()
     return redirect('/')
 
-@app.route('/fish_identifier', methods=['GET'])
+@app.route('/identifier', methods=['GET'])
 def fish_identifier():
-    pass
+    return render_template('identifier.html')
 
 @app.route('/map', methods=['GET'])
 def map():
@@ -144,4 +150,4 @@ def create_post():
         return redirect('/')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, ssl_context=('certs/cert.pem', 'certs/key.pem'), host="0.0.0.0", port=443)
