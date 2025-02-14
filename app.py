@@ -17,7 +17,7 @@ app.secret_key = 'd3b07384d113edec49eaa6238ad5ff00c86c392bd62329c75b90dbd174ca03
 UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-def is_valid_username_or_password(item):
+def is_valid(item):
     return isinstance(item,str) and 1<=len(item)<=255 and re.match(r"^[a-zA-Z0-9\s.,'-]+$", item)
 
 def init_db():
@@ -53,11 +53,11 @@ def index():
 def login():
     if request.method=='POST':
         username = request.form['username_entry']
-        if not is_valid_username_or_password(username):
+        if not is_valid(username):
             flash('Invalid username, try again', 'error')
             return redirect('/login')
         password = request.form['password_entry']
-        if not is_valid_username_or_password(password):
+        if not is_valid(password):
             flash('Invalid password, try again', 'error')
             return redirect('/login')
         conn = sqlite3.connect('fishing_app.db')
@@ -78,11 +78,11 @@ def login():
 def register():
     if request.method == 'POST':
         username = request.form['username_entry']
-        if not is_valid_username_or_password(username):
+        if not is_valid(username):
             flash('Invalid username, try again', 'error')
             return redirect('/login')
         password = request.form['password_entry']
-        if not is_valid_username_or_password(password):
+        if not is_valid(password):
             flash('Invalid password, try again', 'error')
             return redirect('/login')
         hashed_password = generate_password_hash(password)
@@ -93,7 +93,8 @@ def register():
         if user_exists:
             flash('Username already exists.', 'error')
         else:
-            cursor.execute('INSERT INTO user_data (username, password) VALUES (?, ?)', (username, hashed_password,))
+            safe_username = escape(username)
+            cursor.execute('INSERT INTO user_data (username, password) VALUES (?, ?)', (safe_username, hashed_password,))
             conn.commit()
             conn.close()
             return redirect('/login')
@@ -129,17 +130,22 @@ def create_post():
     
     image = request.files['image']
     caption = request.form.get('caption')
+
+    if not is_valid(caption):
+        flash('Invalid caption, try again', 'error')
+        return redirect('/')
     
     if image:
         filename = secure_filename(image.filename)
         image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         relative_image_path = os.path.join('uploads', filename).replace("\\", "/")  # Store relative path
         image.save(image_path)
+        safe_caption = escape(caption)
         
         conn = sqlite3.connect('fishing_app.db')
         cursor = conn.cursor()
         cursor.execute('INSERT INTO posts (user_id, image_path, caption) VALUES (?, ?, ?)', 
-                       (session['user_id'], relative_image_path, caption))
+                       (session['user_id'], relative_image_path, safe_caption))
         conn.commit()
         conn.close()
         
