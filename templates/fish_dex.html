@@ -2,4 +2,23 @@
 
 {% block body %}
 
+<h1>Fish Dex - Collect them all!</h1>
+
+<div class="found_fish">
+    {% for fish in caught_list %}
+        <div class="fish_card">
+            <h2>{{ fish }}</h2>
+            <img src="{{ fish.image }}" alt="{{ fish.name }}">
+        </div>
+    {% endfor %}
+</div>
+<div class="unfound_fish">
+    {% for fish in uncaught_list %}
+        <div class="fish_card">
+            <h2>{{ fish }}</h2>
+            <img src="{{ fish.image }}" alt="no img">
+        </div>
+    {% endfor %}    
+</div>
+
 {% endblock %}

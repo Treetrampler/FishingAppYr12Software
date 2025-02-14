@@ -16,6 +16,7 @@ def enforce_https():
 app.secret_key = 'd3b07384d113edec49eaa6238ad5ff00c86c392bd62329c75b90dbd174ca03eb'
 UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+FISH_LIST = ['Bass', 'Catfish', 'Crappie', 'Perch', 'Pike', 'Australian Salmon', 'Trout', 'Walleye', 'Bream', 'Mulloway', 'Mullet']
 
 def is_valid(item):
     return isinstance(item,str) and 1<=len(item)<=255 and re.match(r"^[a-zA-Z0-9\s.,'-]+$", item)
@@ -33,6 +34,13 @@ def init_db():
     user_id INTEGER NOT NULL,
     image_path TEXT NOT NULL,
     caption TEXT,
+    FOREIGN KEY(user_id) REFERENCES user_data(user_id))
+    ''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS user_fishdata
+    (fish_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fish_name TEXT NOT NULL,
+    user_id INTEGER NOT NULL,
+    image_path TEXT NOT NULL,
     FOREIGN KEY(user_id) REFERENCES user_data(user_id))
     ''')
     conn.commit()
@@ -119,9 +127,17 @@ def fish_identifier():
 def map():
     return render_template('map.html')
 
-@app.route('/fish_dex', methods=['GET'])
+@app.route('/fish_dex', methods=['GET', 'POST'])
 def fish_dex():
-    return render_template('fish_dex.html')
+    if request.method == 'GET':
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM user_fishdata WHERE user_id = ?', (session['user_id'],))
+        caught_list = cursor.fetchall()
+        conn.close()
+        uncaught_list = [fish for fish in FISH_LIST if fish not in [fish[1] for fish in caught_list]]
+        print(uncaught_list), print(caught_list)
+    return render_template('fish_dex.html', caught_list=caught_list, uncaught_list=uncaught_list)
 
 @app.route('/create_post', methods=['POST'])
 def create_post():

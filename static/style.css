@@ -181,6 +181,24 @@
     border: 1px solid black; /* Remove default border */
 }
 
+/* CSS STYLING FOR FISH-DEX THIS NEEDS TO BE RESPONSIVELY STYLED ASAP*/
+
+.unfound_fish {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Create a 3-column grid */ 
+    gap: 20px;
+    padding: 20px;
+    margin-left: clamp(50px, 10%, 300px); /* Leaves space for the sidebar */
+}
+
+.fish_card {
+    background-color: green;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
 /* CSS STYLING FOR RESPONSIVE STUFF */
 
 @media (max-width: 768px) {
