@@ -139,6 +139,41 @@ def fish_dex():
         print(uncaught_list), print(caught_list)
     return render_template('fish_dex.html', caught_list=caught_list, uncaught_list=uncaught_list)
 
+@app.route('/upload_fish_image', methods=['POST'])
+def upload_fish_image():
+    if 'user_id' not in session:
+        return redirect('/login')
+    
+    fish_id = request.form.get('fish_id')
+    image = request.files['image']
+    
+    if image:
+        filename = secure_filename(image.filename)
+        image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        image.save(image_path)
+        
+        # Update the database with the new image path
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        if fish_id:
+            cursor.execute('UPDATE user_fishdata SET image_path = ? WHERE fish_id = ? AND user_id = ?', 
+                        (image_path, fish_id, session['user_id']))
+            print('fish id found, updated db')
+            print(fish_id)
+        else:
+            print(request.form.get('fish_name'))
+            cursor.execute('INSERT INTO user_fishdata (fish_name, user_id, image_path) VALUES (?, ?, ?)', 
+                        (request.form.get('fish_name'), session['user_id'], image_path))
+            print('no fish id, inserted into db')
+        conn.commit()
+        conn.close()
+        
+        flash('Image uploaded successfully!', 'success')
+        return redirect('/fish_dex')
+    else:
+        flash('Failed to upload image. Please try again.', 'error')
+        return redirect('/fish_dex')
+
 @app.route('/create_post', methods=['POST'])
 def create_post():
     if 'user_id' not in session:
