@@ -4,19 +4,24 @@
 
 <h1>Fish Dex - Collect them all!</h1>
 
+<h3>--- Caught Fish ---</h3>
+
 <div class="found_fish">
     {% for fish in caught_list %}
         <div class="fish_card">
-            <h2>{{ fish }}</h2>
-            <img src="{{ fish.image }}" alt="{{ fish.name }}">
+            <img src="{{ fish[3] }}" alt="{{ /static/images/blank_fish_image.jpg }}">
+            <h3>{{ fish }}</h3>
         </div>
     {% endfor %}
 </div>
+
+<h3>--- Yet To Catch ---</h3>
+
 <div class="unfound_fish">
     {% for fish in uncaught_list %}
         <div class="fish_card">
-            <h2>{{ fish }}</h2>
-            <img src="{{ fish.image }}" alt="no img">
+            <img src="/static/images/blank_fish_image.jpg" alt="no img">
+            <h3>{{ fish }}</h3>
         </div>
     {% endfor %}    
 </div>
