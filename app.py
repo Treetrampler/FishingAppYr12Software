@@ -145,6 +145,7 @@ def upload_fish_image():
         return redirect('/login')
     
     fish_id = request.form.get('fish_id')
+    print(fish_id)
     image = request.files['image']
     
     if image:

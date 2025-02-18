@@ -8,7 +8,7 @@
 
 <div class="found_fish">
     {% for fish in caught_list %}
-        <div class="fish_card" onclick="openModal('{{ fish }}, {{ fish[0]}}')">
+        <div class="fish_card" onclick="openModal('{{ fish[1] }}', '{{ fish[0]}}')">
             <img src="{{ fish[3] }}" alt="/static/images/blank_fish_image.jpg">
             <h3>{{ fish[1] }}</h3>
         </div>
@@ -42,6 +42,7 @@
 
 <script>
     function openModal(fishName, fishId) {
+        alert(fishName);
         document.getElementById('fish_name').value = fishName;
         document.getElementById('fish_id').value = fishId;
         document.getElementById('uploadModal').style.display = 'block';
