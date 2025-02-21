@@ -35,6 +35,19 @@ FISH_LIST = ['Bass', 'Catfish', 'Crappie', 'Perch', 'Pike', 'Australian Salmon',
 
 limiter = Limiter(get_remote_address, app=app, default_limits=["10 per minute"])
 
+@app.errorhandler(400)
+def bad_request_error(error):
+    return render_template('error.html', message="Bad Request: Please check your input."), 400
+@app.errorhandler(403)
+def forbidden_error(error):
+    return render_template('error.html', message="Forbidden: You don’t have permission to access this."), 403
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('error.html', message="Page Not Found: The resource you requested does not exist."), 404
+@app.errorhandler(500)
+def internal_error(error):
+    return render_template('error.html', message="Internal Server Error: Something went wrong on our end."), 500
+
 def is_valid(item):
     return isinstance(item,str) and 1<=len(item)<=255 and re.match(r"^[a-zA-Z0-9\s.,'-]+$", item)
 
