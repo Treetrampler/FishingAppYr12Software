@@ -102,9 +102,9 @@ def index():
 
     return render_template('index.html', posts=posts)
 
-@app.route('/adminview')
-def adminview():
-    return render_template('adminview.html')
+@app.route('/admin_home')
+def admin_home():
+    return render_template('admin_home.html')
 
 @app.route('/login', methods=['POST', 'GET']) #called when someone tries to login after entering username and pw
 @limiter.limit("10 per minute")
@@ -128,7 +128,7 @@ def login():
                 session['username'] = user[1]
                 session['csfr_token'] = str(uuid.uuid4())
                 if user[3] == 1:
-                    return redirect('/adminview')
+                    return redirect('/admin_home')
                 else:
                     return redirect('/')
             else:
@@ -317,6 +317,18 @@ def create_post():
     else:
         flash('Failed to create post. Please try again.', 'error')
         return redirect('/')
+    
+@app.route('/post_management', methods=['GET'])
+def post_management():
+    return render_template('post_management.html')
+
+@app.route('/user_management', methods=['GET'])
+def user_management():
+    return render_template('user_management.html')
+
+@app.route('/fish_dex_management', methods=['GET'])
+def fish_dex_management():
+    return render_template('fish_dex_management.html')
 
 if __name__ == '__main__':
     app.run(debug=True, ssl_context=('certs/cert.pem', 'certs/key.pem'), host="0.0.0.0", port=443)
