@@ -215,35 +215,40 @@ def upload_fish_image():
     image = request.files['image']
     
     if image:
-        filename = secure_filename(image.filename)
-        image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        image.save(image_path)
-        
-        # Update the database with the new image path
-        conn = sqlite3.connect('fishing_app.db')
-        cursor = conn.cursor()
-        if fish_id:
-            try:
-                cursor.execute('UPDATE user_fishdata SET image_path = ? WHERE fish_id = ? AND user_id = ?', 
-                            (image_path, fish_id, session['user_id']))
-                conn.commit()
-            except sqlite3.IntegrityError:
-                flash('A database integrity error occurred. Please try again.', 'error')
-            except sqlite3.Error:
-                flash('A database error occurred. Please contact support.', 'error')
-        else:
-            try:
-                cursor.execute('INSERT INTO user_fishdata (fish_name, user_id, image_path) VALUES (?, ?, ?)', 
-                            (request.form.get('fish_name'), session['user_id'], image_path))
-                conn.commit()
-            except sqlite3.IntegrityError:
-                flash('A database integrity error occurred. Please try again.', 'error')
-            except sqlite3.Error:
-                flash('A database error occurred. Please contact support.', 'error')
-        conn.close()
-        
-        flash('Image uploaded successfully!', 'success')
-        return redirect('/fish_dex')
+        try:
+            filename = secure_filename(image.filename)
+            image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            image.save(image_path)
+            
+            # Update the database with the new image path
+            conn = sqlite3.connect('fishing_app.db')
+            cursor = conn.cursor()
+            if fish_id:
+                try:
+                    cursor.execute('UPDATE user_fishdata SET image_path = ? WHERE fish_id = ? AND user_id = ?', 
+                                (image_path, fish_id, session['user_id']))
+                    conn.commit()
+                except sqlite3.IntegrityError:
+                    flash('A database integrity error occurred. Please try again.', 'error')
+                except sqlite3.Error:
+                    flash('A database error occurred. Please contact support.', 'error')
+            else:
+                try:
+                    cursor.execute('INSERT INTO user_fishdata (fish_name, user_id, image_path) VALUES (?, ?, ?)', 
+                                (request.form.get('fish_name'), session['user_id'], image_path))
+                    conn.commit()
+                except sqlite3.IntegrityError:
+                    flash('A database integrity error occurred. Please try again.', 'error')
+                except sqlite3.Error:
+                    flash('A database error occurred. Please contact support.', 'error')
+            conn.close()
+            flash('Image uploaded successfully!', 'success')
+
+        except FileNotFoundError:
+            flash('File failed to upload, please retry', 'error')
+
+        finally:
+            return redirect('/fish_dex')
     else:
         flash('Failed to upload image. Please try again.', 'error')
         return redirect('/fish_dex')
@@ -262,28 +267,33 @@ def create_post():
         return redirect('/')
     
     if image:
-        filename = secure_filename(image.filename)
-        print(filename)
-        print(image.filename)
-        image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        relative_image_path = os.path.join('uploads', filename).replace("\\", "/")  # Store relative path
-        image.save(image_path)
-        
         try:
-            conn = sqlite3.connect('fishing_app.db')
-            cursor = conn.cursor()
-            cursor.execute('INSERT INTO posts (user_id, image_path, caption) VALUES (?, ?, ?)', 
-                        (session['user_id'], relative_image_path, caption))
-            conn.commit()
-            flash('Post created successfully!', 'success')
-        except sqlite3.IntegrityError:
-            flash('A database integrity error occurred. Please try again.', 'error')
-        except sqlite3.Error:
-            flash('A database error occurred. Please contact support.', 'error')
-        finally:
-            conn.close()
+            filename = secure_filename(image.filename)
+            print(filename)
+            print(image.filename)
+            image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            relative_image_path = os.path.join('uploads', filename).replace("\\", "/")  # Store relative path
+            image.save(image_path)
         
-        return redirect('/')
+            try:
+                conn = sqlite3.connect('fishing_app.db')
+                cursor = conn.cursor()
+                cursor.execute('INSERT INTO posts (user_id, image_path, caption) VALUES (?, ?, ?)', 
+                            (session['user_id'], relative_image_path, caption))
+                conn.commit()
+                flash('Post created successfully!', 'success')
+            except sqlite3.IntegrityError:
+                flash('A database integrity error occurred. Please try again.', 'error')
+            except sqlite3.Error:
+                flash('A database error occurred. Please contact support.', 'error')
+            finally:
+                conn.close()
+        
+        except FileNotFoundError:
+            flash('File failed to upload, please retry', 'error')
+
+        finally:
+            return redirect('/')
     else:
         flash('Failed to create post. Please try again.', 'error')
         return redirect('/')
