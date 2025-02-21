@@ -102,6 +102,10 @@ def index():
 
     return render_template('index.html', posts=posts)
 
+@app.route('/adminview')
+def adminview():
+    return render_template('adminview.html')
+
 @app.route('/login', methods=['POST', 'GET']) #called when someone tries to login after entering username and pw
 @limiter.limit("10 per minute")
 def login():
@@ -123,7 +127,10 @@ def login():
                 session['user_id'] = user[0]
                 session['username'] = user[1]
                 session['csfr_token'] = str(uuid.uuid4())
-                return redirect('/')
+                if user[3] == 1:
+                    return redirect('/adminview')
+                else:
+                    return redirect('/')
             else:
                 flash('Invalid username or password.', 'error')
         except sqlite3.IntegrityError:

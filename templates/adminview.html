@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Fishing App</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+        <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    </head>
+    <body>
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <ul class="flashes">
+                        {% for category, message in messages %}
+                            <li class="{{ category }}">{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+            <div id="sidebar">
+                <h1>Catch</h1>
+                <ul>
+                    <li><a href="{{ url_for('adminview') }}" class="nav_item">Home</a></li>
+                    <li><a href="{{ url_for('user_management') }}" class="nav_item">User Management</a></li>
+                    <li><a href="{{ url_for('post_management') }}" class="nav_item">Post Management</a></li>
+                    <li><a href="{{ url_for('fish_dex_management') }}" class="nav_item">Fish-Dex Management</a></li>
+                    <li>
+                        <a href="{{ url_for('profile') }}" class="username_btn">
+                            <span><ion-icon name="person-circle-outline"></ion-icon></span>
+                            {{ session['username'] }}
+                        </a>
+                    </li>
+                    <li><a href="{{ url_for('logout') }}" class="logout_btn">Logout</a></li>
+                </ul>
+            </div>
+            <div id="content">
+                {% block body %}
+                {% endblock %}
+            </div>        
+        </div>
+    </body>
+</html>
