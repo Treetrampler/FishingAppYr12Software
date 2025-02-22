@@ -207,6 +207,7 @@ def register():
                 cursor.execute('INSERT INTO user_data (username, password, admin) VALUES (?, ?, ?)', (safe_username, hashed_password, admin,))
                 conn.commit()
                 conn.close()
+                flash('User registered successfully, please log in.', 'success')
                 return redirect('/login')
         except sqlite3.IntegrityError:
             flash('A database integrity error occurred. Please try again.', 'error')
@@ -221,7 +222,20 @@ def register():
 def profile():
     if 'user_id' not in session:
         return redirect('/login')
-    return render_template('profile.html', username=session['username'])
+    user_data = []
+    try:
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM user_data WHERE user_id = ?', (session['user_id'],))
+        user_data = cursor.fetchall()[0]
+    except sqlite3.IntegrityError:
+        flash('A database integrity error occurred. Please try again.', 'error')
+    except sqlite3.Error:
+        flash('A database error occurred. Please contact support.', 'error')
+    finally:
+        conn.close()
+    print(user_data)
+    return render_template('profile.html', user_data=user_data)
 
 @app.route('/logout')
 def logout():
