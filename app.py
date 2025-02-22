@@ -2,13 +2,14 @@ import sqlite3
 import re
 import os
 import uuid
-from flask import Flask, render_template, request, redirect, session, flash
+from flask import Flask, render_template, request, redirect, session, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from markupsafe import escape
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from datetime import timedelta, datetime
+import pytz
 
 app = Flask(__name__)
 
@@ -90,6 +91,14 @@ def init_db():
         image_path TEXT NOT NULL,
         FOREIGN KEY(user_id) REFERENCES user_data(user_id))
         ''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS user_sessions
+        (session_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        login_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        logout_time TIMESTAMP,
+        active INTEGER DEFAULT 1,
+        FOREIGN KEY(user_id) REFERENCES user_data(user_id))
+        ''')
         conn.commit()
     except sqlite3.IntegrityError:
         flash('A database integrity error occurred. Please try again.', 'error')
@@ -127,10 +136,6 @@ def index():
     else:
         return render_template('index.html', posts=posts)
 
-@app.route('/admin_home')
-def admin_home():
-    return render_template('admin_home.html')
-
 @app.route('/login', methods=['POST', 'GET']) #called when someone tries to login after entering username and pw
 @limiter.limit("10 per minute")
 def login():
@@ -154,6 +159,9 @@ def login():
                 session['csfr_token'] = str(uuid.uuid4())
 
                 log_user_activity("logged in", username)
+
+                cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user[0],))
+                conn.commit()
 
                 if user[3] == 1:
                     return redirect('/admin_home')
@@ -219,6 +227,17 @@ def profile():
 def logout():
     if 'username' in session:
         log_user_activity("logged out", session['username'])
+        try:
+            conn = sqlite3.connect('fishing_app.db')
+            cursor = conn.cursor()
+            cursor.execute('UPDATE user_sessions SET logout_time = CURRENT_TIMESTAMP, active = 0 WHERE user_id = ? AND active = 1', (session['user_id'],))
+            conn.commit()
+        except sqlite3.IntegrityError:
+            flash('A database integrity error occurred. Please try again.', 'error')
+        except sqlite3.Error:
+            flash('A database error occurred. Please contact support.', 'error')
+        finally:
+            conn.close()
     session.clear()
     return redirect('/')
 
@@ -347,6 +366,45 @@ def create_post():
     else:
         flash('Failed to create post. Please try again.', 'error')
         return redirect('/')
+    
+@app.route('/admin_home')
+def admin_home():
+    return render_template('admin_home.html')
+
+@app.route('/get_logged_in_users', methods=['GET'])
+def get_logged_in_users():
+    try:
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        
+        # Fetch timestamps from database (assuming they are stored in UTC)
+        cursor.execute('SELECT login_time, COUNT(*) FROM user_sessions WHERE active = 1 GROUP BY login_time')
+        data = cursor.fetchall()
+        
+        # Define timezones
+        utc_tz = pytz.utc
+        aest_tz = pytz.timezone('Australia/Sydney')  # Handles AEST/AEDT automatically
+        
+        timestamps = []
+        logged_in_users = []
+
+        for row in data:
+            utc_time = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")  # Adjust format if needed
+            utc_time = utc_tz.localize(utc_time)  # Ensure it's treated as UTC
+            aest_time = utc_time.astimezone(aest_tz)  # Convert to AEST/AEDT
+
+            timestamps.append(aest_time.strftime("%Y-%m-%d %H:%M"))  # Format properly
+            logged_in_users.append(row[1])
+
+        return jsonify({
+            'timestamps': timestamps,
+            'logged_in_users': logged_in_users
+        })
+    except sqlite3.Error as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
+
     
 @app.route('/post_management', methods=['GET'])
 def post_management():
