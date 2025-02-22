@@ -14,7 +14,7 @@
                 {% if messages %}
                     <ul class="flashes">
                         {% for category, message in messages %}
-                            <li class="{{ category }}">{{ message }}</li>
+                            <li class="{{ category }}">{{ message }} <span class="close">&times;</span></li>
                         {% endfor %}
                     </ul>
                 {% endif %}
@@ -40,5 +40,20 @@
                 {% endblock %}
             </div>        
         </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const closeButtons = document.querySelectorAll('.flashes .close');
+                closeButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const li = this.parentElement;
+                        const ul = li.parentElement;
+                        li.style.display = 'none';
+                        if (ul.querySelectorAll('li:not([style*="display: none"])').length === 0) {
+                            ul.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        </script>
     </body>
 </html>
