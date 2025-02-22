@@ -227,7 +227,7 @@
 }
 
 
-/* Modal styling */
+/* Modal styling for javascript popups*/
 .modal {
     display: none; /* Hidden by default */
     position: fixed; /* Stay in place */
@@ -242,24 +242,33 @@
 }
 
 .modal-content {
+    text-align: center;
     background-color: #fefefe;
     margin: 15% auto; /* 15% from the top and centered */
     padding: 20px;
     border: 1px solid #888;
-    width: 100%; /* Could be more or less, depending on screen size */
-    max-width: 500px; /* Cap the maximum width */
+    width: 80%; /* Adjust width to fit within the screen */
+    max-width: 580px;
     border-radius: 10px;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
 }
 
 .modal-content form {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%; /* Ensure the form takes the full width of the modal content */
 }
 
-.modal-content input[type="file"] {
-    width: 100%; /* Make the file input take the full width */
+.modal-content input[type="text"],
+.modal-content input[type="file"],
+.modal-content select {
+    width: 100%; /* Make the input fields take the full width */
+    padding: 10px;
     margin-bottom: 10px; /* Add some space below the input */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
 }
 
 .modal-content button {
@@ -288,6 +297,47 @@
     color: black;
     text-decoration: none;
     cursor: pointer;
+}
+
+/* CSS STYLING FOR ADMIN TABLES */
+
+table {
+    width: calc(100% - clamp(150px, 20%, 300px)); /* Prevents overlap with the sidebar */
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 18px;
+    text-align: left;
+}
+
+table thead {
+    background-color: #f2f2f2;
+}
+
+table th, table td {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+}
+
+table th {
+    background-color: #4CAF50;
+    color: white;
+}
+
+table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+table tr:hover {
+    background-color: #f1f1f1;
+}
+
+table a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+table a:hover {
+    text-decoration: underline;
 }
 
 /* CSS STYLING FOR RESPONSIVE STUFF */

@@ -108,11 +108,13 @@ def index():
         cursor = conn.cursor()
         cursor.execute('SELECT posts.image_path, posts.caption, user_data.username FROM posts JOIN user_data ON posts.user_id = user_data.user_id ORDER BY posts.post_id DESC')
         posts = cursor.fetchall()
+        admin = 0
+
         if 'user_id' in session:
             cursor.execute('SELECT admin FROM user_data WHERE user_id = ?', (session['user_id'],))
-            admin = cursor.fetchone()
-        else:
-            admin = False
+            result = cursor.fetchone()
+            admin = result[0] if result else 0  # Extract admin value safely
+
     except sqlite3.IntegrityError:
         flash('A database integrity error occurred. Please try again.', 'error')
     except sqlite3.Error:
@@ -120,7 +122,7 @@ def index():
     finally:
         conn.close()
 
-    if admin:
+    if admin == 1:
         return render_template('admin_home.html')
     else:
         return render_template('index.html', posts=posts)
@@ -175,11 +177,11 @@ def register():
         username = request.form['username_entry']
         if not is_valid(username):
             flash('Invalid username, try again', 'error')
-            return redirect('/login')
+            return redirect('/register')
         password = request.form['password_entry']
         if not is_valid(password):
             flash('Invalid password, try again', 'error')
-            return redirect('/login')
+            return redirect('/register')
         hashed_password = generate_password_hash(password)
         try:
             conn = sqlite3.connect('fishing_app.db')
@@ -352,7 +354,71 @@ def post_management():
 
 @app.route('/user_management', methods=['GET'])
 def user_management():
-    return render_template('user_management.html')
+    user_data = []
+    try:
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM user_data')
+        user_data = cursor.fetchall()
+    except sqlite3.IntegrityError:
+        flash('A database integrity error occurred. Please try again.', 'error')
+    except sqlite3.Error:
+        flash('A database error occurred. Please contact support.', 'error')
+    finally:
+        conn.close()
+    return render_template('user_management.html', user_data=user_data)
+
+@app.route('/edit_user', methods=['POST'])
+def edit_user():
+    if 'user_id' not in session:
+        flash('Please login to access this page.', 'error')
+        return redirect('/login')
+    
+    user_id = request.form.get('user_id')
+    username = request.form.get('username')
+    admin = request.form.get('admin')
+    
+    if not is_valid(username):
+        flash('Invalid username, try again', 'error')
+        return redirect('/user_management')
+    
+    try:
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        cursor.execute('UPDATE user_data SET username = ?, admin = ? WHERE user_id = ?', (username, admin, user_id))
+        conn.commit()
+        flash('User updated successfully!', 'success')
+    except sqlite3.IntegrityError:
+        flash('A database integrity error occurred. Please try again.', 'error')
+    except sqlite3.Error:
+        flash('A database error occurred. Please contact support.', 'error')
+    finally:
+        conn.close()
+    
+    return redirect('/user_management')
+
+@app.route('/delete_user', methods=['POST'])
+def delete_user():
+    if 'user_id' not in session:
+        flash('Please login to access this page.', 'error')
+        return redirect('/login')
+    
+    user_id = request.form.get('user_id')
+    
+    try:
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM user_data WHERE user_id = ?', (user_id,))
+        conn.commit()
+        flash('User deleted successfully!', 'success')
+    except sqlite3.IntegrityError:
+        flash('A database integrity error occurred. Please try again.', 'error')
+    except sqlite3.Error:
+        flash('A database error occurred. Please contact support.', 'error')
+    finally:
+        conn.close()
+    
+    return redirect('/user_management')
 
 @app.route('/fish_dex_management', methods=['GET'])
 def fish_dex_management():
