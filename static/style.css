@@ -107,23 +107,22 @@
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #f44336; /* Red background */
-    color: white;
-    padding: 15px;
-    border-radius: 1px;
+    padding: 0; /* Remove padding from the ul */
+    border-radius: 5px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     z-index: 1000; /* Ensure it appears above everything */
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-width: 100px;
+    min-width: 300px;
     max-width: 80%;
 }
 
 .flashes li {
     list-style: none;
     margin: 0;
-    padding: 0;
+    padding: 15px; /* Add padding to the li */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 5px; /* Add border-radius to the li */
 }
 
 .flashes .close {
@@ -136,6 +135,17 @@
 
 .flashes .close:hover {
     color: #bbb;
+}
+
+/* Flash message categories */
+.flashes .error {
+    background-color: #f44336; /* Red background for errors */
+    color: white;
+}
+
+.flashes .success {
+    background-color: #4CAF50; /* Green background for success */
+    color: white;
 }
 
 /* Style the posts */
