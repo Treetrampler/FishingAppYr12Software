@@ -408,7 +408,69 @@ def get_logged_in_users():
     
 @app.route('/post_management', methods=['GET'])
 def post_management():
-    return render_template('post_management.html')
+    post_data = []
+    try:
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM posts')
+        post_data = cursor.fetchall()
+    except sqlite3.IntegrityError:
+        flash('A database integrity error occurred. Please try again.', 'error')
+    except sqlite3.Error:
+        flash('A database error occurred. Please contact support.', 'error')
+    finally:
+        conn.close()
+    print(post_data)
+    return render_template('post_management.html', post_data=post_data)
+
+@app.route('/delete_post', methods=['POST'])
+def delete_post():
+    if 'user_id' not in session:
+        flash('Please login to access this page.', 'error')
+        return redirect('/login')
+    
+    post_id = request.form.get('post_id')
+    
+    try:
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM posts WHERE post_id = ?', (post_id,))
+        conn.commit()
+        flash('Post deleted successfully!', 'success')
+    except sqlite3.IntegrityError:
+        flash('A database integrity error occurred. Please try again.', 'error')
+    except sqlite3.Error:
+        flash('A database error occurred. Please contact support.', 'error')
+    finally:
+        conn.close()
+    
+    return redirect('/post_management')
+
+@app.route('/edit_post', methods=['POST'])
+def edit_post():
+    if 'user_id' not in session:
+        flash('Please login to access this page.', 'error')
+        return redirect('/login')
+    
+    post_id = request.form.get('post_id')
+    user_id = request.form.get('user_id')
+    image_src = request.form.get('image_src')
+    caption = request.form.get('caption')
+    
+    try:
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        cursor.execute('UPDATE posts SET user_id = ?, image_path = ?, caption = ? WHERE post_id = ?', (user_id, image_src, caption, post_id))
+        conn.commit()
+        flash('Post updated successfully!', 'success')
+    except sqlite3.IntegrityError:
+        flash('A database integrity error occurred. Please try again.', 'error')
+    except sqlite3.Error:
+        flash('A database error occurred. Please contact support.', 'error')
+    finally:
+        conn.close()
+    
+    return redirect('/post_management')
 
 @app.route('/user_management', methods=['GET'])
 def user_management():

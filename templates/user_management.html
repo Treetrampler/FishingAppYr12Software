@@ -14,15 +14,15 @@
     </thead>
     <tbody>
         {% for user in user_data %}
-        <tr>
-            <td>{{ user[0] }}</td>
-            <td>{{ user[1] }}</td>
-            <td>{{ 'Yes' if user[3] == 1 else 'No' }}</td>
-            <td>
-                <a href="javascript:void(0);" onclick="openEditModal('{{ user[0] }}', '{{ user[1] }}', '{{ user[3] }}')">Edit</a> |
-                <a href="javascript:void(0);" onclick="openDeleteModal('{{ user[0] }}')">Delete</a>
-            </td>
-        </tr>
+            <tr>
+                <td>{{ user[0] }}</td>
+                <td>{{ user[1] }}</td>
+                <td>{{ 'Yes' if user[3] == 1 else 'No' }}</td>
+                <td>
+                    <a href="javascript:void(0);" onclick="openEditModal('{{ user[0] }}', '{{ user[1] }}', '{{ user[3] }}')">Edit</a> |
+                    <a href="javascript:void(0);" onclick="openDeleteModal('{{ user[0] }}')">Delete</a>
+                </td>
+            </tr>
         {% endfor %}
     </tbody>
 </table>
