@@ -32,6 +32,18 @@
                     }
                 });
             });
+
+            // Automatically remove flash messages after 3 seconds
+            setTimeout(() => {
+                const flashes = document.querySelectorAll('.flashes li');
+                flashes.forEach(flash => {
+                    flash.style.display = 'none';
+                });
+                const ul = document.querySelector('.flashes');
+                if (ul) {
+                    ul.style.display = 'none';
+                }
+            }, 3000); // 3 seconds
         });
     </script>
 </body>
