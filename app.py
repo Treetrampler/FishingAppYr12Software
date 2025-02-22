@@ -8,11 +8,19 @@ from werkzeug.utils import secure_filename
 from markupsafe import escape
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 app = Flask(__name__)
 
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
+
+app.secret_key = 'd3b07384d113edec49eaa6238ad5ff00c86c392bd62329c75b90dbd174ca03eb'
+UPLOAD_FOLDER = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+LOG_FILE = "user_activity.log"
+FISH_LIST = ['Bass', 'Catfish', 'Crappie', 'Perch', 'Pike', 'Australian Salmon', 'Trout', 'Walleye', 'Bream', 'Mulloway', 'Mullet']
+
+limiter = Limiter(get_remote_address, app=app, default_limits=["10 per minute"])
 
 app.config.update(
     SESSION_COOKIE_SECURE=True, #enforces HTTPS for session cookies
@@ -25,27 +33,34 @@ def enforce_https():
     if not request.is_secure:
         return redirect(request.url.replace("http://", "https://"))
     
+@app.before_request
+def session_log(): 
+    if 'user_id' in session:
+        session.modified = True  # Refresh session expiration
+    else:
+        if 'username' in session:
+            log_user_activity("session expired", session['username'])
+            session.clear()
+    
 def make_session_permanent():
     session.permanent = True
 
-app.secret_key = 'd3b07384d113edec49eaa6238ad5ff00c86c392bd62329c75b90dbd174ca03eb'
-UPLOAD_FOLDER = 'static/uploads'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-FISH_LIST = ['Bass', 'Catfish', 'Crappie', 'Perch', 'Pike', 'Australian Salmon', 'Trout', 'Walleye', 'Bream', 'Mulloway', 'Mullet']
-
-limiter = Limiter(get_remote_address, app=app, default_limits=["10 per minute"])
+def log_user_activity(action, username):
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    with open("user_activity.log", "a") as log_file:
+        log_file.write(f"{timestamp} - {username} {action}\n")
 
 @app.errorhandler(400)
-def bad_request_error(error):
+def bad_request_error():
     return render_template('error.html', message="Bad Request: Please check your input."), 400
 @app.errorhandler(403)
-def forbidden_error(error):
+def forbidden_error():
     return render_template('error.html', message="Forbidden: You don’t have permission to access this."), 403
 @app.errorhandler(404)
-def not_found_error(error):
+def not_found_error():
     return render_template('error.html', message="Page Not Found: The resource you requested does not exist."), 404
 @app.errorhandler(500)
-def internal_error(error):
+def internal_error():
     return render_template('error.html', message="Internal Server Error: Something went wrong on our end."), 500
 
 def is_valid(item):
@@ -93,6 +108,11 @@ def index():
         cursor = conn.cursor()
         cursor.execute('SELECT posts.image_path, posts.caption, user_data.username FROM posts JOIN user_data ON posts.user_id = user_data.user_id ORDER BY posts.post_id DESC')
         posts = cursor.fetchall()
+        if 'user_id' in session:
+            cursor.execute('SELECT admin FROM user_data WHERE user_id = ?', (session['user_id'],))
+            admin = cursor.fetchone()
+        else:
+            admin = False
     except sqlite3.IntegrityError:
         flash('A database integrity error occurred. Please try again.', 'error')
     except sqlite3.Error:
@@ -100,7 +120,10 @@ def index():
     finally:
         conn.close()
 
-    return render_template('index.html', posts=posts)
+    if admin:
+        return render_template('admin_home.html')
+    else:
+        return render_template('index.html', posts=posts)
 
 @app.route('/admin_home')
 def admin_home():
@@ -127,6 +150,9 @@ def login():
                 session['user_id'] = user[0]
                 session['username'] = user[1]
                 session['csfr_token'] = str(uuid.uuid4())
+
+                log_user_activity("logged in", username)
+
                 if user[3] == 1:
                     return redirect('/admin_home')
                 else:
@@ -189,6 +215,8 @@ def profile():
 
 @app.route('/logout')
 def logout():
+    if 'username' in session:
+        log_user_activity("logged out", session['username'])
     session.clear()
     return redirect('/')
 
