@@ -671,9 +671,5 @@ def delete_user():
     
     return redirect('/user_management')
 
-@app.route('/fish_dex_management', methods=['GET'])
-def fish_dex_management():
-    return render_template('fish_dex_management.html')
-
 if __name__ == '__main__':
     app.run(debug=True, ssl_context=('certs/cert.pem', 'certs/key.pem'), host="0.0.0.0", port=443)
