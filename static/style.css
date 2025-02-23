@@ -241,15 +241,50 @@
 
 /* CSS STYLING FOR PROFILE PAGE */
 
+.profile_container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.profile_header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
 .profile_image {
-    position: absolute;
-    width: 100px;
-    height: 100px;
+    width: 150px;
+    height: 150px;
     border-radius: 50%;
-    object-fit: cover;
-    display: block;
-    left: clamp(150px, 20%, 300px); /* Leaves space for the sidebar */
-    top: 0;
+    margin-right: 20px;
+}
+
+.profile_details {
+    flex-grow: 1;
+}
+
+.profile_details h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.profile_details p {
+    margin: 5px 0;
+    color: gray;
+}
+
+.edit_profile_btn {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.edit_profile_btn:hover {
+    background-color: #0056b3;
 }
 
 

@@ -222,20 +222,88 @@ def register():
 def profile():
     if 'user_id' not in session:
         return redirect('/login')
+    
     user_data = []
+    user_posts = []
+    
     try:
         conn = sqlite3.connect('fishing_app.db')
         cursor = conn.cursor()
+        
+        # Fetch user data
         cursor.execute('SELECT * FROM user_data WHERE user_id = ?', (session['user_id'],))
-        user_data = cursor.fetchall()[0]
+        user_data = cursor.fetchone()
+        
+        # Fetch user posts
+        cursor.execute('SELECT post_id, image_path, caption FROM posts WHERE user_id = ?', (session['user_id'],))
+        user_posts = cursor.fetchall()
+        
     except sqlite3.IntegrityError:
         flash('A database integrity error occurred. Please try again.', 'error')
     except sqlite3.Error:
         flash('A database error occurred. Please contact support.', 'error')
     finally:
         conn.close()
+    
     print(user_data)
-    return render_template('profile.html', user_data=user_data)
+    print(user_posts)
+    return render_template('profile.html', user_data=user_data, user_posts=user_posts)
+
+@app.route('/edit_profile', methods=['POST'])
+def edit_profile():
+    if 'user_id' not in session:
+        flash('Please login to access this page.', 'error')
+        return redirect('/login')
+    
+    username = request.form.get('username')
+    bio = request.form.get('bio')
+    
+    if not is_valid(username):
+        flash('Invalid username, try again', 'error')
+        return redirect('/profile')
+    
+    try:
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        cursor.execute('UPDATE user_data SET username = ?, bio = ? WHERE user_id = ?', (username, bio, session['user_id']))
+        conn.commit()
+        flash('Profile updated successfully!', 'success')
+    except sqlite3.IntegrityError:
+        flash('A database integrity error occurred. Please try again.', 'error')
+    except sqlite3.Error:
+        flash('A database error occurred. Please contact support.', 'error')
+    finally:
+        conn.close()
+    
+    return redirect('/profile')
+
+@app.route('/user_edit_post', methods=['POST'])
+def user_edit_post():
+    if 'user_id' not in session:
+        flash('Please login to access this page.', 'error')
+        return redirect('/login')
+    
+    post_id = request.form.get('post_id')
+    caption = request.form.get('caption')
+    
+    if not is_valid(caption):
+        flash('Invalid caption, try again', 'error')
+        return redirect('/profile')
+    
+    try:
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        cursor.execute('UPDATE posts SET caption = ? WHERE post_id = ? AND user_id = ?', (caption, post_id, session['user_id']))
+        conn.commit()
+        flash('Post updated successfully!', 'success')
+    except sqlite3.IntegrityError:
+        flash('A database integrity error occurred. Please try again.', 'error')
+    except sqlite3.Error:
+        flash('A database error occurred. Please contact support.', 'error')
+    finally:
+        conn.close()
+    
+    return redirect('/profile')
 
 @app.route('/logout')
 def logout():

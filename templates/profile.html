@@ -1,8 +1,98 @@
 {% extends 'main_layout.html' %}
 
 {% block body%}
+<div id="content">
+    <div class="profile_container">
+        <div class="profile_header">
+            <img src="{{ url_for('static', filename='images/blank_profile_pic.png') }}" class="profile_image" alt="Profile Picture">
+            <div class="profile_details">
+                <h1>{{ user_data[1] }}</h1>
+                <button class="edit_profile_btn" onclick="openEditProfileModal()">Edit Profile</button>
+            </div>
+        </div>
+        <div class="profile_posts">
+            {% for post in user_posts %}
+                <div class="post">
+                    <div class="post_overlay">
+                        <button class="edit_post_btn" onclick="openEditPostModal('{{ post[0] }}', '{{ post[2] }}')">Edit</button>
+                        <button class="delete_post_btn" onclick="openDeletePostModal('{{ post[0] }}')">Delete</button>
+                    </div>
+                    <img src="{{ url_for('static', filename=post[1]) }}" class="post_image" alt="Post Image">
+                    <p>{{ post[2] }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
 
-<img src="static/images/blank_profile_pic.png" class="profile_image" alt="Profile Picture">
-<h1>{{user_data[1]}}</h1>
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditProfileModal()">&times;</span>
+            <h2>Edit Profile</h2>
+            <form id="editProfileForm" action="{{ url_for('edit_profile') }}" method="post">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" value="{{ user_data[1] }}" required>
+                <button type="submit">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Post Modal -->
+    <div id="editPostModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditPostModal()">&times;</span>
+            <h2>Edit Post</h2>
+            <form id="editPostForm" action="{{ url_for('user_edit_post') }}" method="post">
+                <input type="hidden" id="edit_post_id" name="post_id">
+                <label for="edit_caption">Caption:</label>
+                <textarea id="edit_caption" name="caption" required></textarea>
+                <button type="submit">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Post Modal -->
+    <div id="deletePostModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeDeletePostModal()">&times;</span>
+            <h2>Delete Post</h2>
+            <p>Are you sure you want to delete this post?</p>
+            <form id="deletePostForm" action="{{ url_for('delete_post') }}" method="post">
+                <input type="hidden" id="delete_post_id" name="post_id">
+                <button type="submit">Delete</button>
+                <button type="button" onclick="closeDeletePostModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openEditProfileModal() {
+            document.getElementById('editProfileModal').style.display = 'block';
+        }
+
+        function closeEditProfileModal() {
+            document.getElementById('editProfileModal').style.display = 'none';
+        }
+
+        function openEditPostModal(postId, caption) {
+            document.getElementById('edit_post_id').value = postId;
+            document.getElementById('edit_caption').value = caption;
+            document.getElementById('editPostModal').style.display = 'block';
+        }
+
+        function closeEditPostModal() {
+            document.getElementById('editPostModal').style.display = 'none';
+        }
+
+        function openDeletePostModal(postId) {
+            document.getElementById('delete_post_id').value = postId;
+            document.getElementById('deletePostModal').style.display = 'block';
+        }
+
+        function closeDeletePostModal() {
+            document.getElementById('deletePostModal').style.display = 'none';
+        }
+    </script>
+</div>
 
 {% endblock %}
