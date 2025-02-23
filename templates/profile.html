@@ -10,14 +10,14 @@
                 <button class="edit_profile_btn" onclick="openEditProfileModal()">Edit Profile</button>
             </div>
         </div>
-        <div class="profile_posts">
+        <div class="posts">
             {% for post in user_posts %}
                 <div class="post">
                     <div class="post_overlay">
                         <button class="edit_post_btn" onclick="openEditPostModal('{{ post[0] }}', '{{ post[2] }}')">Edit</button>
                         <button class="delete_post_btn" onclick="openDeletePostModal('{{ post[0] }}')">Delete</button>
                     </div>
-                    <img src="{{ url_for('static', filename=post[1]) }}" class="post_image" alt="Post Image">
+                    <img src="{{ url_for('static', filename=post[1]) }}" alt="Post Image">
                     <p>{{ post[2] }}</p>
                 </div>
             {% endfor %}
@@ -57,7 +57,7 @@
             <span class="close" onclick="closeDeletePostModal()">&times;</span>
             <h2>Delete Post</h2>
             <p>Are you sure you want to delete this post?</p>
-            <form id="deletePostForm" action="{{ url_for('delete_post') }}" method="post">
+            <form id="deletePostForm" action="{{ url_for('user_delete_post') }}" method="post">
                 <input type="hidden" id="delete_post_id" name="post_id">
                 <button type="submit">Delete</button>
                 <button type="button" onclick="closeDeletePostModal()">Cancel</button>

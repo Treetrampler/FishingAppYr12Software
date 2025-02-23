@@ -65,7 +65,7 @@ def internal_error():
     return render_template('error.html', message="Internal Server Error: Something went wrong on our end."), 500
 
 def is_valid(item):
-    return isinstance(item,str) and 1<=len(item)<=255 and re.match(r"^[a-zA-Z0-9\s.,'-]+$", item)
+    return isinstance(item,str) and 1<=len(item)<=255 and re.match(r"^[a-zA-Z0-9\s.,-_]+$", item)
 
 def init_db():
     try:
@@ -296,6 +296,29 @@ def user_edit_post():
         cursor.execute('UPDATE posts SET caption = ? WHERE post_id = ? AND user_id = ?', (caption, post_id, session['user_id']))
         conn.commit()
         flash('Post updated successfully!', 'success')
+    except sqlite3.IntegrityError:
+        flash('A database integrity error occurred. Please try again.', 'error')
+    except sqlite3.Error:
+        flash('A database error occurred. Please contact support.', 'error')
+    finally:
+        conn.close()
+    
+    return redirect('/profile')
+
+@app.route('/user_delete_post', methods=['POST'])
+def user_delete_post():
+    if 'user_id' not in session:
+        flash('Please login to access this page.', 'error')
+        return redirect('/login')
+    
+    post_id = request.form.get('post_id')
+    
+    try:
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM posts WHERE post_id = ? AND user_id = ?', (post_id, session['user_id']))
+        conn.commit()
+        flash('Post deleted successfully!', 'success')
     except sqlite3.IntegrityError:
         flash('A database integrity error occurred. Please try again.', 'error')
     except sqlite3.Error:

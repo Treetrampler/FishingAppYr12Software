@@ -150,11 +150,12 @@
 
 /* Style the posts */
 .posts {
-    width: 90%;
+    width: 100%;
     max-width: 500px;
 }
 
 .post {
+    position: relative;
     background-color: #fff;
     padding: 20px;
     border-radius: 10px;
@@ -274,6 +275,24 @@
     color: gray;
 }
 
+.post_overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.post:hover .post_overlay {
+    opacity: 1;
+}
+
 .edit_profile_btn {
     padding: 10px 20px;
     background-color: #007bff;
@@ -284,6 +303,22 @@
 }
 
 .edit_profile_btn:hover {
+    background-color: #0056b3;
+}
+
+.edit_post_btn,
+.delete_post_btn {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 5px;
+}
+
+.edit_post_btn:hover,
+.delete_post_btn:hover {
     background-color: #0056b3;
 }
 
@@ -379,6 +414,7 @@
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000; /* Ensure it appears above other elements */
 }
 
 .open-modal-btn:hover {
