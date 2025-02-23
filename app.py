@@ -206,9 +206,24 @@ def register():
                     admin = 0
                 cursor.execute('INSERT INTO user_data (username, password, admin) VALUES (?, ?, ?)', (safe_username, hashed_password, admin,))
                 conn.commit()
-                conn.close()
-                flash('User registered successfully, please log in.', 'success')
-                return redirect('/login')
+                print('inserted')
+                cursor.execute('SELECT user_id FROM user_data WHERE username = ?', (username,))
+                print('selected')
+                user_id = cursor.fetchone()[0]
+                print(user_id)
+                session['user_id'] = user_id
+                session['username'] = username
+                session['csfr_token'] = str(uuid.uuid4())
+
+                log_user_activity("logged in", username)
+
+                cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user_id,))
+                conn.commit()
+                flash('User registered successfully!', 'success')
+                if admin == 1:
+                    return redirect('/admin_home')
+                else:
+                    return redirect('/')
         except sqlite3.IntegrityError:
             flash('A database integrity error occurred. Please try again.', 'error')
         except sqlite3.Error:
