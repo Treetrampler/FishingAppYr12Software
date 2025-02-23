@@ -89,6 +89,18 @@
     color: darkgray;
 }
 
+/* Styling for the user info in the sidebar */
+.user_info {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Adjust the gap between the icon and the username */
+}
+
+.user_info p {
+    margin: 0;
+    font-size: 16px; /* Adjust the size of the username text */
+}
+
 /* CSS STYLING FOR THE CONTENT SECTION + HOME PAGE FEED DISPLAY */
 
 #content {

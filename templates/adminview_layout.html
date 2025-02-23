@@ -26,11 +26,9 @@
                     <li><a href="{{ url_for('user_management') }}" class="nav_item">User Management</a></li>
                     <li><a href="{{ url_for('post_management') }}" class="nav_item">Post Management</a></li>
                     <li><a href="{{ url_for('fish_dex_management') }}" class="nav_item">Fish-Dex Management</a></li>
-                    <li>
-                        <a href="{{ url_for('profile') }}" class="username_btn">
-                            <span><ion-icon name="person-circle-outline"></ion-icon></span>
-                            {{ session['username'] }}
-                        </a>
+                    <li class="user_info">
+                        <span><ion-icon name="person-circle-outline"></ion-icon></span>
+                        <p>{{ session['username'] }}</p>
                     </li>
                     <li><a href="{{ url_for('logout') }}" class="logout_btn">Logout</a></li>
                 </ul>
