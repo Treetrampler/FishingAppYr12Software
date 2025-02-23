@@ -44,10 +44,8 @@
                     {% endif %}
                 </ul>
             </div>
-            <div id="content">
-                {% block body %}
-                {% endblock %}
-            </div>        
+            {% block body %}
+            {% endblock %}     
         </div>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
