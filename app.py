@@ -256,7 +256,6 @@ def edit_profile():
         return redirect('/login')
     
     username = request.form.get('username')
-    bio = request.form.get('bio')
     
     if not is_valid(username):
         flash('Invalid username, try again', 'error')
@@ -265,7 +264,7 @@ def edit_profile():
     try:
         conn = sqlite3.connect('fishing_app.db')
         cursor = conn.cursor()
-        cursor.execute('UPDATE user_data SET username = ?, bio = ? WHERE user_id = ?', (username, bio, session['user_id']))
+        cursor.execute('UPDATE user_data SET username = ?, WHERE user_id = ?', (username, session['user_id']))
         conn.commit()
         flash('Profile updated successfully!', 'success')
     except sqlite3.IntegrityError:
@@ -289,6 +288,8 @@ def user_edit_post():
     if not is_valid(caption):
         flash('Invalid caption, try again', 'error')
         return redirect('/profile')
+    
+    caption = escape(caption)
     
     try:
         conn = sqlite3.connect('fishing_app.db')
@@ -440,6 +441,8 @@ def create_post():
         flash('Invalid caption, try again', 'error')
         return redirect('/')
     
+    caption = escape(caption)
+    
     if image:
         try:
             filename = secure_filename(image.filename)
@@ -561,6 +564,12 @@ def edit_post():
     user_id = request.form.get('user_id')
     image_src = request.form.get('image_src')
     caption = request.form.get('caption')
+
+    if not is_valid(caption):
+        flash('Invalid caption, try again', 'error')
+        return redirect('/post_management')
+    
+    caption = escape(caption)
     
     try:
         conn = sqlite3.connect('fishing_app.db')
@@ -606,6 +615,8 @@ def edit_user():
     if not is_valid(username):
         flash('Invalid username, try again', 'error')
         return redirect('/user_management')
+    
+    username = escape(username)
     
     try:
         conn = sqlite3.connect('fishing_app.db')
