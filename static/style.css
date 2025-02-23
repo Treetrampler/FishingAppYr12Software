@@ -239,6 +239,19 @@
     align-items: flex-end; /* Align text to the bottom */
 }
 
+/* CSS STYLING FOR PROFILE PAGE */
+
+.profile_image {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    left: clamp(150px, 20%, 300px); /* Leaves space for the sidebar */
+    top: 0;
+}
+
 
 /* Modal styling for javascript popups*/
 .modal {
