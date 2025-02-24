@@ -10,6 +10,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from datetime import timedelta, datetime
 import pytz
+from bleach import clean
 
 app = Flask(__name__)
 
@@ -140,11 +141,12 @@ def index():
 @limiter.limit("10 per minute")
 def login():
     if request.method=='POST':
-        username = request.form['username_entry']
+        username = clean(request.form['username_entry'])
         if not is_valid(username):
             flash('Invalid username, try again', 'error')
             return redirect('/login')
-        password = request.form['password_entry']
+        
+        password = clean(request.form['password_entry'])
         if not is_valid(password):
             flash('Invalid password, try again', 'error')
             return redirect('/login')
@@ -182,11 +184,12 @@ def login():
 @app.route('/register', methods=['POST', 'GET']) #called when someone tries to register after entering username and pw
 def register():
     if request.method == 'POST':
-        username = request.form['username_entry']
+        username = clean(request.form['username_entry'])
         if not is_valid(username):
             flash('Invalid username, try again', 'error')
             return redirect('/register')
-        password = request.form['password_entry']
+        
+        password = clean(request.form['password_entry'])
         if not is_valid(password):
             flash('Invalid password, try again', 'error')
             return redirect('/register')
@@ -259,9 +262,7 @@ def profile():
         flash('A database error occurred. Please contact support.', 'error')
     finally:
         conn.close()
-    
-    print(user_data)
-    print(user_posts)
+
     return render_template('profile.html', user_data=user_data, user_posts=user_posts)
 
 @app.route('/edit_profile', methods=['POST'])
@@ -270,18 +271,23 @@ def edit_profile():
         flash('Please login to access this page.', 'error')
         return redirect('/login')
     
-    username = request.form.get('username')
+    username = clean(request.form.get('username'))
+    print('editing profile')
     
     if not is_valid(username):
         flash('Invalid username, try again', 'error')
         return redirect('/profile')
     
     try:
+        safe_username = escape(username)
         conn = sqlite3.connect('fishing_app.db')
         cursor = conn.cursor()
-        cursor.execute('UPDATE user_data SET username = ?, WHERE user_id = ?', (username, session['user_id']))
+        print('runnning db')
+        print(session['user_id'])
+        cursor.execute('UPDATE user_data SET username = ? WHERE user_id = ?', (safe_username, session['user_id']))
+        print('succesffuly updated')
         conn.commit()
-        flash('Profile updated successfully!', 'success')
+        flash(f'Username updated to {safe_username}', 'success')
     except sqlite3.IntegrityError:
         flash('A database integrity error occurred. Please try again.', 'error')
     except sqlite3.Error:
@@ -298,18 +304,17 @@ def user_edit_post():
         return redirect('/login')
     
     post_id = request.form.get('post_id')
-    caption = request.form.get('caption')
+    caption = clean(request.form.get('caption'))
     
     if not is_valid(caption):
         flash('Invalid caption, try again', 'error')
         return redirect('/profile')
     
-    caption = escape(caption)
-    
     try:
+        safe_caption = escape(caption)
         conn = sqlite3.connect('fishing_app.db')
         cursor = conn.cursor()
-        cursor.execute('UPDATE posts SET caption = ? WHERE post_id = ? AND user_id = ?', (caption, post_id, session['user_id']))
+        cursor.execute('UPDATE posts SET caption = ? WHERE post_id = ? AND user_id = ?', (safe_caption, post_id, session['user_id']))
         conn.commit()
         flash('Post updated successfully!', 'success')
     except sqlite3.IntegrityError:
@@ -449,15 +454,14 @@ def create_post():
         flash('Please login to access this page.', 'error')
         return redirect('/')
     
-    image = request.files['image']
-    caption = request.form.get('caption')
+    caption = clean(request.form.get('caption'))
 
     if not is_valid(caption):
         flash('Invalid caption, try again', 'error')
         return redirect('/')
     
-    caption = escape(caption)
-    
+    image = request.files['image']
+
     if image:
         try:
             filename = secure_filename(image.filename)
@@ -468,10 +472,11 @@ def create_post():
             image.save(image_path)
         
             try:
+                safe_caption = escape(caption)
                 conn = sqlite3.connect('fishing_app.db')
                 cursor = conn.cursor()
                 cursor.execute('INSERT INTO posts (user_id, image_path, caption) VALUES (?, ?, ?)', 
-                            (session['user_id'], relative_image_path, caption))
+                            (session['user_id'], relative_image_path, safe_caption))
                 conn.commit()
                 flash('Post created successfully!', 'success')
             except sqlite3.IntegrityError:
@@ -578,18 +583,17 @@ def edit_post():
     post_id = request.form.get('post_id')
     user_id = request.form.get('user_id')
     image_src = request.form.get('image_src')
-    caption = request.form.get('caption')
+    caption = clean(request.form.get('caption'))
 
     if not is_valid(caption):
         flash('Invalid caption, try again', 'error')
         return redirect('/post_management')
     
-    caption = escape(caption)
-    
     try:
+        safe_caption = escape(caption)
         conn = sqlite3.connect('fishing_app.db')
         cursor = conn.cursor()
-        cursor.execute('UPDATE posts SET user_id = ?, image_path = ?, caption = ? WHERE post_id = ?', (user_id, image_src, caption, post_id))
+        cursor.execute('UPDATE posts SET user_id = ?, image_path = ?, caption = ? WHERE post_id = ?', (user_id, image_src, safe_caption, post_id))
         conn.commit()
         flash('Post updated successfully!', 'success')
     except sqlite3.IntegrityError:
@@ -624,19 +628,18 @@ def edit_user():
         return redirect('/login')
     
     user_id = request.form.get('user_id')
-    username = request.form.get('username')
+    username = clean(request.form.get('username'))
     admin = request.form.get('admin')
     
     if not is_valid(username):
         flash('Invalid username, try again', 'error')
         return redirect('/user_management')
     
-    username = escape(username)
-    
     try:
+        safe_username = escape(username)
         conn = sqlite3.connect('fishing_app.db')
         cursor = conn.cursor()
-        cursor.execute('UPDATE user_data SET username = ?, admin = ? WHERE user_id = ?', (username, admin, user_id))
+        cursor.execute('UPDATE user_data SET username = ?, admin = ? WHERE user_id = ?', (safe_username, admin, user_id))
         conn.commit()
         flash('User updated successfully!', 'success')
     except sqlite3.IntegrityError:
