@@ -102,25 +102,6 @@ input:focus {
     outline: none;
 }
 
-.options {
-    display: flex;
-    align-items: center;
-    margin-top: 15px;
-    font-size: 12px;
-    color: white;
-}
-
-.options input {
-    margin-right: 5px;
-    margin-top: 0px;
-}
-
-.options a {
-    color: white;
-    text-decoration: none;
-    margin-left: auto;
-}
-
 button {
     background: #fff;
     color: black;
