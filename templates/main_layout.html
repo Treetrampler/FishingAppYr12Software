@@ -22,10 +22,30 @@
             <div id="sidebar">
                 <h1>Catch</h1>
                 <ul>
-                    <li><a href="{{ url_for('index') }}" class="nav_item">Feed</a></li>
-                    <li><a href="{{ url_for('fish_identifier') }}" class="nav_item">Identifier</a></li>
-                    <li><a href="{{ url_for('map') }}" class="nav_item">Map</a></li>
-                    <li><a href="{{ url_for('fish_dex') }}" class="nav_item">Fish-Dex</a></li>
+                    <li>
+                        <a href="{{ url_for('index') }}" class="nav_item">
+                            <ion-icon name="home-outline"></ion-icon>
+                            Feed
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('fish_identifier') }}" class="nav_item">
+                            <ion-icon name="search-outline"></ion-icon>
+                            Identifier
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('map') }}" class="nav_item">
+                            <ion-icon name="map-outline"></ion-icon>
+                            Map
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('fish_dex') }}" class="nav_item">
+                            <ion-icon name="book-outline"></ion-icon>
+                            Fish-Dex
+                        </a>
+                    </li>
                     {% if 'user_id' in session %}
                         <li>
                             <a href="{{ url_for('profile') }}" class="username_btn">
@@ -33,7 +53,12 @@
                                 {{ session['username'] }}
                             </a>
                         </li>
-                        <li><a href="{{ url_for('logout') }}" class="logout_btn">Logout</a></li>
+                        <li>
+                            <a href="{{ url_for('logout') }}" class="logout_btn">
+                                <ion-icon name="exit-outline"></ion-icon>
+                                Logout
+                            </a>
+                        </li>
                     {% else %}
                         <li>
                             <a href="{{ url_for('login') }}" class="login_btn">
