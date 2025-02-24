@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}Fishing App{% endblock %}</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+        <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    </head>
+    <body>
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <ul class="flashes">
+                        {% for category, message in messages %}
+                            <li class="{{ category }}">{{ message }} <span class="close">&times;</span></li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+            <div id="sidebar">
+                <h1>Catch</h1>
+                <ul>
+                    <li>
+                        <a href="{{ url_for('index') }}" class="nav_item">
+                            <ion-icon name="home-outline"></ion-icon>
+                            Feed
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('fish_identifier') }}" class="nav_item">
+                            <ion-icon name="search-outline"></ion-icon>
+                            Identifier
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('map') }}" class="nav_item">
+                            <ion-icon name="map-outline"></ion-icon>
+                            Map
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('fish_dex') }}" class="nav_item">
+                            <ion-icon name="book-outline"></ion-icon>
+                            Fish-Dex
+                        </a>
+                    </li>
+                    {% if 'user_id' in session %}
+                        <li>
+                            <a href="{{ url_for('profile') }}" class="username_btn">
+                                <ion-icon name="person-circle-outline"></ion-icon>
+                                {{ session['username'] }}
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('logout') }}" class="logout_btn">
+                                <ion-icon name="exit-outline"></ion-icon>
+                                Logout
+                            </a>
+                        </li>
+                    {% else %}
+                        <li>
+                            <a href="{{ url_for('login') }}" class="login_btn">
+                                <span><ion-icon name="person-circle-outline"></ion-icon></span>
+                                Login
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+            {% block body %}
+            {% endblock %}     
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const closeButtons = document.querySelectorAll('.flashes .close');
+                closeButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const li = this.parentElement;
+                        const ul = li.parentElement;
+                        li.style.display = 'none';
+                        if (ul.querySelectorAll('li:not([style*="display: none"])').length === 0) {
+                            ul.style.display = 'none';
+                        }
+                    });
+                });
+
+                // Automatically remove flash messages after 3 seconds
+                setTimeout(() => {
+                    const flashes = document.querySelectorAll('.flashes li');
+                    flashes.forEach(flash => {
+                        flash.style.display = 'none';
+                    });
+                    const ul = document.querySelector('.flashes');
+                    if (ul) {
+                        ul.style.display = 'none';
+                    }
+                }, 3000); // 3 seconds
+            });
+        </script>
+    </body>
+</html>

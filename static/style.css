@@ -1,0 +1,526 @@
+* {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* CSS STYLING FOR THE LOGIN + REGISTER PAGES */
+
+#login_wrapper {
+    width: 30%;
+    border: 1px solid black;
+    margin: 15% auto;
+    padding: 30px 20px;
+}
+
+#login_wrapper h1{
+    text-align:center;
+}
+
+.login_form {
+    margin: 0 auto;
+}
+
+.login_form ul{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+.login_form li{
+    padding: 5px 0;
+}
+
+.register_button{
+    text-decoration: none;
+    color: black;
+}
+
+/* CSS STYLING FOR THE MAIN TEMPLATE - THE SIDEBAR + NAV */
+
+#sidebar {
+    width: clamp(150px, 20%, 300px);
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    border: 1px solid black;
+    padding: 25px;
+}
+
+#sidebar ul{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: clamp(16px, 1vw, 50px);
+}
+
+#sidebar li{
+    padding: 15px 0;
+}
+
+#sidebar a{
+    text-decoration: none;
+    color: black;
+    font-size: clamp(16px, 1vw, 50px);
+}
+
+#sidebar ion-icon {
+    font-size: clamp(16px, 1vw, 50px);
+    color: black;
+    vertical-align: top;
+    padding-right: 5px;
+}
+
+.logout_btn{
+    position: fixed;
+    bottom: 10px;
+    left: 25px;
+}
+
+.nav_bar{
+    list-style: none;
+}
+
+.nav_item {
+    text-decoration: none;
+    color: black;
+    list-style: none;
+}
+.nav_item:hover {
+    color: darkgray;
+}
+
+/* Styling for the user info in the sidebar */
+.user_info {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.user_info p {
+    margin: 0;
+    font-size: 16px; /* Adjust the size of the username text */
+}
+
+/* CSS STYLING FOR THE CONTENT SECTION + HOME PAGE FEED DISPLAY */
+
+#content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+    margin-left: clamp(200px, 20%, 300px); /* Leaves space for the sidebar */
+    width: calc(100% - clamp(200px, 20%, 300px)); /* Prevents overlap */
+    position: relative;
+}
+
+/* Flash messages styling */
+.flashes {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0; /* Remove padding from the ul */
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000; /* Ensure it appears above everything */
+    min-width: 300px;
+    max-width: 80%;
+}
+
+.flashes li {
+    list-style: none;
+    margin: 0;
+    padding: 15px; /* Add padding to the li */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 5px; /* Add border-radius to the li */
+}
+
+.flashes .close {
+    margin-left: 15px;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.flashes .close:hover {
+    color: #bbb;
+}
+
+/* Flash message categories */
+.flashes .error {
+    background-color: #f44336; /* Red background for errors */
+    color: white;
+}
+
+.flashes .success {
+    background-color: #4CAF50; /* Green background for success */
+    color: white;
+}
+
+/* Style the posts */
+.posts {
+    width: 100%;
+    max-width: 500px;
+}
+
+.post {
+    position: relative;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.post img {
+    max-width: 100%;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    max-height: 300px;
+    height: auto;
+    object-fit: contain;
+}
+
+.post p {
+    margin: 0;
+    text-align: left;
+    flex-grow: 1;
+}
+
+.post h4 {
+    text-align: center;
+    vertical-align: center;
+    margin-top: 0;
+}
+
+/* CSS STYLING FOR THE FISH IDENTIFIER AI */
+
+.fish_ai_insert {
+    position: absolute;
+    top: 0;
+    left: clamp(150px, 20%, 300px); /* Leaves space for the sidebar */
+    width: calc(100% - clamp(150px, 20%, 300px)); /* Prevents overlap with the sidebar */
+    height: 100%;
+    border: 1px solid black; /* Remove default border */
+}
+
+/* CSS STYLING FOR FISH-DEX */
+
+.found_fish, .unfound_fish {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Create a 3-column grid */
+    gap: 20px;
+    padding: 20px;
+    margin: 0 auto; /* Center the divs */
+    max-width: calc(100% - clamp(150px, 20%, 300px)); /* Ensure they do not overlap the sidebar */
+}
+
+.fish_card {
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 300px; /* Cap the maximum width */
+    max-height: 200px; /* Cap the maximum height */
+    overflow: hidden; /* Hide overflow content */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.fish_card img {
+    max-width: 100%;
+    height: auto; /* Maintain aspect ratio */
+    max-height: 100px; /* Cap the maximum height for the image */
+    border-radius: 10px;
+    object-fit: contain; /* Ensure the image fits within the area */
+    margin-bottom: 10px;
+}
+
+.fish_card h3 {
+    margin: 0;
+    text-align: left;
+    flex-grow: 1; /* Allow the caption to grow and fill available space */
+    overflow: hidden; /* Hide overflow content */
+    text-overflow: ellipsis; /* Add ellipsis for overflow text */
+    white-space: nowrap; /* Prevent text from wrapping */
+    display: flex;
+    align-items: flex-end; /* Align text to the bottom */
+}
+
+/* CSS STYLING FOR PROFILE PAGE */
+
+.profile_container {
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.profile_header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.profile_image {
+    width: 200px;
+    height: 150px;
+    border-radius: 50%;
+    margin-right: 20px;
+}
+
+.profile_details {
+    flex-grow: 1;
+}
+
+.profile_details h1 {
+    margin: 0;
+    font-size: 45px;
+}
+
+.profile_details p {
+    margin: 5px 0;
+    color: gray;
+}
+
+.post_overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.post:hover .post_overlay {
+    opacity: 1;
+}
+
+.edit_profile_btn {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.edit_profile_btn:hover {
+    background-color: #0056b3;
+}
+
+.edit_post_btn,
+.delete_post_btn {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 5px;
+}
+
+.edit_post_btn:hover,
+.delete_post_btn:hover {
+    background-color: #0056b3;
+}
+
+
+/* Modal styling for javascript popups*/
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.modal-content {
+    text-align: center;
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Adjust width to fit within the screen */
+    max-width: 580px;
+    border-radius: 10px;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+.modal-content form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%; /* Ensure the form takes the full width of the modal content */
+}
+
+.modal-content input[type="text"],
+.modal-content input[type="file"],
+.modal-content textarea,
+.modal-content select {
+    width: 100%; /* Make the input fields take the full width */
+    padding: 10px;
+    margin-bottom: 10px; /* Add some space below the input */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+.modal-content button {
+    width: 100%; /* Make the button take the full width */
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+}
+
+.modal-content button:hover {
+    background-color: #0056b3;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Button to open the modal */
+.open-modal-btn {
+    position: fixed;
+    bottom: 20px;
+    left: (50% + clamp(150px, 20%, 300px));
+    transform: translateX(-50%);
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    font-size: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000; /* Ensure it appears above other elements */
+}
+
+.open-modal-btn:hover {
+    background-color: #0056b3;
+}
+
+/* CSS STYLING FOR ADMIN TABLES */
+
+table {
+    width: calc(100% - clamp(150px, 20%, 300px)); /* Prevents overlap with the sidebar */
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 18px;
+    text-align: left;
+}
+
+table thead {
+    background-color: #f2f2f2;
+}
+
+table th, table td {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+}
+
+table th {
+    background-color: #4CAF50;
+    color: white;
+}
+
+table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+table tr:hover {
+    background-color: #f1f1f1;
+}
+
+table a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+table a:hover {
+    text-decoration: underline;
+}
+
+/* CSS STYLING FOR THE USER NUMBER CHART */
+
+#chart-container {
+    width: 30%; /* Adjust width as needed */
+    max-width: 400px; /* Prevents excessive growth */
+    height: 250px; /* Fixed height */
+    margin-top: 20px; /* Space below "Admin Dashboard" heading */
+    padding: 10px;
+    position: relative; /* Ensures it stays inside #content */
+    left: 0; /* Align to the left inside #content */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f9f9f9; /* Light background for visibility */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#loggedInUsersChart {
+    width: 100%;
+    height: 100%;
+}
+
+/* CSS STYLING FOR RESPONSIVE STUFF */
+
+@media (max-width: 768px) {
+    #sidebar {
+        position: relative; /* Sidebar moves with content */
+        width: 100%; /* Sidebar spans full width */
+        height: auto; /* Adjusts height automatically */
+        text-align: center;
+    }
+
+    #content {
+        margin-left: 0; /* Remove left margin on small screens */
+        width: 100%;
+    }
+
+    .posts {
+        width: 100%;
+    }
+
+    .logout_btn {
+        position: relative;
+        text-align: center; /* Center the logout button */
+        display: inline-block; /* Ensure it behaves like other menu items */
+    }
+}
