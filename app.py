@@ -143,12 +143,12 @@ def index():
 @limiter.limit("10 per minute")
 def login():
     if request.method=='POST':
-        username = clean(request.form['username_entry'])
+        username = clean(request.form['username'])
         if not is_valid(username):
             flash('Invalid username, try again', 'error')
             return redirect('/login')
         
-        password = clean(request.form['password_entry'])
+        password = clean(request.form['password'])
         if not is_valid(password):
             flash('Invalid password, try again', 'error')
             return redirect('/login')
