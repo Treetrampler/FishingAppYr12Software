@@ -29,12 +29,23 @@ body {
 
 .glass_container_login {
     height: 350px;
+    animation: shrink 0.5s ease-out forwards; /* Animation for shrinking the box */
 }
 
 .glass_container_register {
     height: 400px;
     animation: expand 0.5s ease-out forwards; /* Animation for expanding the box */
 }
+
+@keyframes shrink {
+    0% {
+        height: 400px;
+    }
+    100% {
+        height: 350px;
+    }
+}
+
 
 @keyframes expand {
     0% {
