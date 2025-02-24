@@ -78,6 +78,7 @@ def init_db():
         (user_id INTEGER PRIMARY KEY AUTOINCREMENT, 
         username TEXT NOT NULL, 
         password TEXT NOT NULL,
+        email TEXT,
         admin INTEGER NOT NULL)
         ''')
         cursor.execute('''CREATE TABLE IF NOT EXISTS posts
@@ -167,7 +168,7 @@ def login():
                 cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user[0],))
                 conn.commit()
 
-                if user[3] == 1:
+                if user[4] == 1:
                     return redirect('/admin_home')
                 else:
                     return redirect('/')
@@ -186,16 +187,24 @@ def login():
 @app.route('/register', methods=['POST', 'GET']) #called when someone tries to register after entering username and pw
 def register():
     if request.method == 'POST':
-        username = clean(request.form['username_entry'])
+        username = clean(request.form['username'])
         if not is_valid(username):
             flash('Invalid username, try again', 'error')
             return redirect('/register')
         
-        password = clean(request.form['password_entry'])
+        password = clean(request.form['password'])
+        check_password = clean(request.form['confirm_password'])
         if not is_valid(password):
             flash('Invalid password, try again', 'error')
             return redirect('/register')
+        elif password != check_password:
+            flash('Passwords do not match.', 'error')
+            return redirect('/register')
+        
         hashed_password = generate_password_hash(password)
+
+        email = clean(request.form['email'])
+
         try:
             conn = sqlite3.connect('fishing_app.db')
             cursor = conn.cursor()
@@ -205,17 +214,15 @@ def register():
                 flash('Username already exists.', 'error')
             else:
                 safe_username = escape(username)
+                safe_email = escape(email)
                 if username == 'Hamish':
                     admin = 1
                 else:
                     admin = 0
-                cursor.execute('INSERT INTO user_data (username, password, admin) VALUES (?, ?, ?)', (safe_username, hashed_password, admin,))
+                cursor.execute('INSERT INTO user_data (username, password, email, admin) VALUES (?, ?, ?, ?)', (safe_username, hashed_password, safe_email, admin))
                 conn.commit()
-                print('inserted')
                 cursor.execute('SELECT user_id FROM user_data WHERE username = ?', (username,))
-                print('selected')
                 user_id = cursor.fetchone()[0]
-                print(user_id)
                 session['user_id'] = user_id
                 session['username'] = username
                 session['csfr_token'] = str(uuid.uuid4())

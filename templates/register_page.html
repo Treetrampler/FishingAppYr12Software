@@ -2,17 +2,17 @@
 
 {% block body%}
 
-<div id="login_wrapper">
-    <h1>Please Register Here</h1>
-    <div class="login_form">
+<div class="glass_container_register glass_container">
+    <div class="register_box">
+        <h2>Register</h2>
         <form action="{{ url_for('register') }}" method="post">
-            <ul>
-                <li><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"></li>
-                <li><input type="text" name="username_entry" placeholder="Username"></li>
-                <li><input type="password" name="password_entry" placeholder="Password"></li>
-                <li><a href="/login" class="register_button">Login</a></li>
-                <li><button type="submit">Register</button></li>
-            </ul>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="text" id="username" name="username" placeholder="Username *" required>
+            <input type="password" id="password" name="password" placeholder="Password *" required>
+            <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm Password *" required>
+            <input type="email" id="email" name="email" placeholder="Email">
+            <button type="submit">Register</button>
+            <p>Already have an account? <a href="/login" id="login">Login</a></p>
         </form>
     </div>
 </div>

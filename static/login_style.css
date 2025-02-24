@@ -18,13 +18,31 @@ body {
 
 .glass_container {
     width: 300px;
-    height: 350px;
     position: relative;
     z-index: 1;
     background: rgba(255, 255, 255, 0.1);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
     border: 1px solid #fff;
+    overflow: hidden; /* Ensure content doesn't overflow during animation */
+}
+
+.glass_container_login {
+    height: 350px;
+}
+
+.glass_container_register {
+    height: 400px;
+    animation: expand 0.5s ease-out forwards; /* Animation for expanding the box */
+}
+
+@keyframes expand {
+    0% {
+        height: 350px;
+    }
+    100% {
+        height: 400px;
+    }
 }
 
 .glass_container::before {
@@ -38,16 +56,25 @@ body {
     z-index: -1;
 }
 
-.login_box {
+.login_box, .register_box {
     max-width: 250px;
     margin: 0 auto;
     text-align: center;
+    opacity: 0; /* Start with content hidden */
+    animation: fadeIn 0.5s ease-out forwards; /* Fade in content */
+    animation-delay: 0.5s; /* Delay to match the box expansion */
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
 }
 
 h2 {
     color: #fff;
     margin-top: 30px;
-    margin-bottom: -20px;
+    margin-bottom: -10px;
 }
 
 form {
@@ -58,7 +85,7 @@ form {
 
 input {
     padding: 10px;
-    margin-top: 25px;
+    margin-top: 15px;
     border: none;
     border-radius: 10px;
     background: transparent;
@@ -116,8 +143,55 @@ p {
     margin-top: 15px;
 }
 
-#register {
+#register, #login {
     text-decoration: none;
     color: #fff;
     font-weight: bold;
+}
+
+/* Flash messages styling */
+.flashes {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0; /* Remove padding from the ul */
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000; /* Ensure it appears above everything */
+    min-width: 300px;
+    max-width: 80%;
+}
+
+.flashes li {
+    list-style: none;
+    margin: 0;
+    padding: 15px; /* Add padding to the li */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 5px; /* Add border-radius to the li */
+}
+
+.flashes .close {
+    margin-left: 15px;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.flashes .close:hover {
+    color: #bbb;
+}
+
+/* Flash message categories */
+.flashes .error {
+    background-color: #f44336; /* Red background for errors */
+    color: white;
+}
+
+.flashes .success {
+    background-color: #4CAF50; /* Green background for success */
+    color: white;
 }
