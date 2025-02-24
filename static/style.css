@@ -94,7 +94,7 @@
 .user_info {
     display: flex;
     align-items: center;
-    gap: 10px; /* Adjust the gap between the icon and the username */
+    gap: 5px;
 }
 
 .user_info p {
