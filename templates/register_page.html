@@ -7,6 +7,7 @@
     <div class="login_form">
         <form action="{{ url_for('register') }}" method="post">
             <ul>
+                <li><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"></li>
                 <li><input type="text" name="username_entry" placeholder="Username"></li>
                 <li><input type="password" name="password_entry" placeholder="Password"></li>
                 <li><a href="/login" class="register_button">Login</a></li>

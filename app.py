@@ -11,8 +11,10 @@ from flask_limiter.util import get_remote_address
 from datetime import timedelta, datetime
 import pytz
 from bleach import clean
+from flask_wtf.csrf import CSRFProtect
 
 app = Flask(__name__)
+csrf = CSRFProtect(app)
 
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
 

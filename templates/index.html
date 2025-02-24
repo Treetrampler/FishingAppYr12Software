@@ -13,6 +13,7 @@
                 <span class="close" onclick="closeCreatePostModal()">&times;</span>
                 <h2>Create Post</h2>
                 <form action="{{ url_for('create_post') }}" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="file" name="image" accept="image/*" required>
                     <textarea name="caption" placeholder="Add a caption..."></textarea>
                     <button type="submit">Post</button>
