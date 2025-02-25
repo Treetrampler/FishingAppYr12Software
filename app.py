@@ -1,7 +1,6 @@
 import sqlite3
 import re
 import os
-import uuid
 from flask import Flask, render_template, request, redirect, session, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -166,7 +165,6 @@ def login():
             if user and check_password_hash(user[2], password):
                 session['user_id'] = user[0]
                 session['username'] = user[1]
-                session['csfr_token'] = str(uuid.uuid4())
 
                 log_user_activity("logged in", username)
 
@@ -230,7 +228,6 @@ def register():
                 user_id = cursor.fetchone()[0]
                 session['user_id'] = user_id
                 session['username'] = username
-                session['csfr_token'] = str(uuid.uuid4())
 
                 log_user_activity("logged in", username)
 
@@ -267,7 +264,7 @@ def profile():
         user_data = cursor.fetchone()
         
         # Fetch user posts
-        cursor.execute('SELECT post_id, image_path, caption FROM posts WHERE user_id = ?', (session['user_id'],))
+        cursor.execute('SELECT posts.post_id, posts.image_path, posts.caption, user_data.username FROM posts JOIN user_data ON posts.user_id = user_data.user_id WHERE posts.user_id = ?', (session['user_id'],))
         user_posts = cursor.fetchall()
         
     except sqlite3.IntegrityError:

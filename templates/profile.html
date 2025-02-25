@@ -22,6 +22,7 @@
                         <button class="edit_post_btn" onclick="openEditPostModal('{{ post[0] }}', '{{ post[2] }}')">Edit</button>
                         <button class="delete_post_btn" onclick="openDeletePostModal('{{ post[0] }}')">Delete</button>
                     </div>
+                    <h4>{{ post[3] }}</h4>
                     <img src="{{ url_for('static', filename=post[1]) }}" alt="Post Image">
                     <p>{{ post[2] }}</p>
                 </div>
