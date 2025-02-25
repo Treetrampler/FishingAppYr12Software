@@ -32,7 +32,7 @@
             <form id="profileImageForm" action="{{ url_for('upload_profile_image') }}" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="file" id="profileImageInput" name="profile_image" accept="image/*" onchange="previewProfileImage(event)" required>
-                <img id="profileImagePreview" src="#" alt="Profile Image Preview" style="display: none; margin-top: 10px; max-width: 100%;">
+                <img id="profileImagePreview" src="#" alt="Profile Image Preview" style="display: none; margin-top: 10px; margin-bottom: 10px; max-width: 100%;">
                 <button type="submit">Upload</button>
             </form>
         </div>
