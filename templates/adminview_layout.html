@@ -40,9 +40,11 @@
                             Post Management
                         </a>
                     </li>
-                    <li class="user_info">
-                        <ion-icon name="person-circle-outline"></ion-icon>
-                        <p>{{ session['username'] }}</p>
+                    <li>
+                        <a href="{{ url_for('profile') }}" class="nav_item">
+                            <ion-icon name="person-circle-outline"></ion-icon>
+                            {{ session['username'] }}
+                        </a>
                     </li>
                     <li>
                         <a href="{{ url_for('logout') }}" class="logout_btn">

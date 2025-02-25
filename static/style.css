@@ -2,6 +2,19 @@
     font-family: Arial, Helvetica, sans-serif;
 }
 
+body {
+    margin: 0;
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden; /* Prevent horizontal scrollbar */
+    background-image: url('images/main_page_background_1.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-color: rgba(255,255,255,0.3);
+    background-blend-mode: lighten;
+    padding-bottom: 100px;
+}
+
 /* CSS STYLING FOR THE LOGIN + REGISTER PAGES */
 
 #login_wrapper {
@@ -45,39 +58,89 @@
     left: 0;
     border: 1px solid black;
     padding: 25px;
+    background-image: url('images/background-login-image-6.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-color: rgba(255,255,255,0.2);
+    background-blend-mode: lighten;
 }
 
-#sidebar ul{
+#sidebar h1 {
+    color: white;
+    text-align: center;
+}
+
+#sidebar ul {
     list-style: none;
     margin: 0;
     padding: 0;
-    font-size: clamp(16px, 1vw, 50px);
 }
 
-#sidebar li{
-    padding: 15px 0;
+#sidebar li {
+    position: relative; /* Ensure the pseudo-element is positioned relative to the li */
+    padding: 0; /* Remove padding from the li */
+    margin-bottom: 10px; /* Add some space between the items */
+    opacity: 0; /* Start with the list items hidden */
+    animation: fadeIn 0.5s ease forwards; /* Apply fade-in animation */
 }
 
-#sidebar a{
+#sidebar li:nth-child(1) {
+    animation-delay: 0.1s; /* Delay for the first item */
+}
+
+#sidebar li:nth-child(2) {
+    animation-delay: 0.2s; /* Delay for the second item */
+}
+
+#sidebar li:nth-child(3) {
+    animation-delay: 0.3s; /* Delay for the third item */
+}
+
+#sidebar li:nth-child(4) {
+    animation-delay: 0.4s; /* Delay for the fourth item */
+}
+
+#sidebar li:nth-child(5) {
+    animation-delay: 0.5s; /* Delay for the fifth item */
+}
+
+#sidebar li:nth-child(6) {
+    animation-delay: 0.6s; /* Delay for the fifth item */
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1; /* Fade in to full opacity */
+    }
+}
+
+#sidebar a {
+    display: block; /* Make the link fill the entire li */
+    padding: 15px; /* Add padding to the link */
+    color: white;
     text-decoration: none;
-    color: black;
-    font-size: clamp(16px, 1vw, 50px);
+    border-radius: 5px;
+    position: relative; /* Ensure the link is positioned relative to the li */
+    z-index: 1; /* Ensure the link text is above the pseudo-element */
+    transition: background-color 0.3s ease; /* Smooth transition for background color */
+}
+
+#sidebar a:hover {
+    background-color: rgba(255, 255, 255, 0.2); /* Change background color on hover */
 }
 
 #sidebar ion-icon {
-    font-size: clamp(16px, 1vw, 50px);
-    color: black;
-    vertical-align: top;
-    padding-right: 5px;
+    color: white;
+    vertical-align: middle; /* Align icon vertically in the middle */
+    margin-right: 10px; /* Add some space between the icon and the text */
 }
 
-.logout_btn{
-    position: fixed;
-    bottom: 10px;
-    left: 25px;
+.logout_btn {
+    position: relative;
+    vertical-align: bottom;
 }
 
-.nav_bar{
+.nav_bar {
     list-style: none;
 }
 
@@ -86,20 +149,9 @@
     color: black;
     list-style: none;
 }
+
 .nav_item:hover {
     color: darkgray;
-}
-
-/* Styling for the user info in the sidebar */
-.user_info {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.user_info p {
-    margin: 0;
-    font-size: 16px; /* Adjust the size of the username text */
 }
 
 /* CSS STYLING FOR THE CONTENT SECTION + HOME PAGE FEED DISPLAY */
@@ -108,7 +160,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 20px;
+    margin-top: 0;
     margin-left: clamp(200px, 20%, 300px); /* Leaves space for the sidebar */
     width: calc(100% - clamp(200px, 20%, 300px)); /* Prevents overlap */
     position: relative;
@@ -170,16 +222,15 @@
 .post {
     position: relative;
     background-color: #fff;
-    padding: 20px;
+    padding: 20px 0;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
+    margin-top: 20px;
     text-align: center;
 }
 
 .post img {
     max-width: 100%;
-    border-radius: 10px;
     margin-bottom: 10px;
     max-height: 300px;
     height: auto;
@@ -190,6 +241,7 @@
     margin: 0;
     text-align: left;
     flex-grow: 1;
+    padding-left: 20px;
 }
 
 .post h4 {
@@ -203,10 +255,9 @@
 .fish_ai_insert {
     position: absolute;
     top: 0;
-    left: clamp(150px, 20%, 300px); /* Leaves space for the sidebar */
-    width: calc(100% - clamp(150px, 20%, 300px)); /* Prevents overlap with the sidebar */
+    left: clamp(150px, 25%, 300px); /* Leaves space for the sidebar */
+    width: calc(100% - clamp(150px, 25%, 300px)); /* Prevents overlap with the sidebar */
     height: 100%;
-    border: 1px solid black; /* Remove default border */
 }
 
 /* CSS STYLING FOR FISH-DEX */
@@ -231,6 +282,13 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.fish_card:hover {
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    transition: background 0.3s, box-shadow 0.3s;
 }
 
 .fish_card img {
