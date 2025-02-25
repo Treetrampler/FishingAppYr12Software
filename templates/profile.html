@@ -4,7 +4,12 @@
 <div id="content">
     <div class="profile_container">
         <div class="profile_header">
-            <img src="{{ url_for('static', filename=user_data[5] or 'images/blank_profile_pic.png') }}" class="profile_image" id="profileImage" alt="Profile Picture" onclick="openProfileImageModal()">
+            <div class="profile_image_wrapper" onclick="openProfileImageModal()">
+                <img src="{{ url_for('static', filename=user_data[5] or 'images/blank_profile_pic.png') }}" class="profile_image" id="profileImage" alt="Profile Picture">
+                <div class="profile_overlay">
+                    <ion-icon name="camera-outline"></ion-icon>
+                </div>
+            </div>
             <div class="profile_details">
                 <h1>{{ user_data[1] }}</h1>
                 <button class="edit_profile_btn" onclick="openEditProfileModal()">Edit Profile</button>
