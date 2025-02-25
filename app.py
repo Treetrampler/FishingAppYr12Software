@@ -21,6 +21,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
 app.secret_key = 'd3b07384d113edec49eaa6238ad5ff00c86c392bd62329c75b90dbd174ca03eb'
 UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 LOG_FILE = "user_activity.log"
 FISH_LIST = ['Bass', 'Catfish', 'Crappie', 'Perch', 'Pike', 'Australian Salmon', 'Trout', 'Walleye', 'Bream', 'Mulloway', 'Mullet', 'Flathead', 'Whiting', 'Tailor']
 
@@ -70,6 +71,9 @@ def internal_error():
 def is_valid(item):
     return isinstance(item,str) and 1<=len(item)<=255 and re.match(r"^[a-zA-Z0-9\s.,-_]+$", item)
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
 def init_db():
     try:
         conn = sqlite3.connect('fishing_app.db')
@@ -79,7 +83,8 @@ def init_db():
         username TEXT NOT NULL, 
         password TEXT NOT NULL,
         email TEXT,
-        admin INTEGER NOT NULL)
+        admin INTEGER NOT NULL,
+        profile_image_path TEXT)
         ''')
         cursor.execute('''CREATE TABLE IF NOT EXISTS posts
         (post_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -273,6 +278,31 @@ def profile():
         conn.close()
 
     return render_template('profile.html', user_data=user_data, user_posts=user_posts)
+
+@app.route('/upload_profile_image', methods=['POST'])
+def upload_profile_image():
+    if 'profile_image' not in request.files:
+        flash('No file part', 'error')
+        return redirect('/profile')
+    file = request.files['profile_image']
+    if file.filename == '':
+        flash('No selected file', 'error')
+        return redirect('/profile')
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        # Update the user's profile image in the database
+        user_id = session['user_id']
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        cursor.execute('UPDATE user_data SET profile_image_path = ? WHERE user_id = ?', (f'uploads/{filename}', user_id))
+        conn.commit()
+        conn.close()
+        flash('Profile image updated successfully', 'success')
+        return redirect('/profile')
+    else:
+        flash('File type not allowed', 'error')
+        return redirect('/profile')
 
 @app.route('/edit_profile', methods=['POST'])
 def edit_profile():

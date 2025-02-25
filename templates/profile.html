@@ -4,7 +4,7 @@
 <div id="content">
     <div class="profile_container">
         <div class="profile_header">
-            <img src="{{ url_for('static', filename='images/blank_profile_pic.png') }}" class="profile_image" alt="Profile Picture">
+            <img src="{{ url_for('static', filename=user_data[5] or 'images/blank_profile_pic.png') }}" class="profile_image" id="profileImage" alt="Profile Picture" onclick="openProfileImageModal()">
             <div class="profile_details">
                 <h1>{{ user_data[1] }}</h1>
                 <button class="edit_profile_btn" onclick="openEditProfileModal()">Edit Profile</button>
@@ -21,6 +21,20 @@
                     <p>{{ post[2] }}</p>
                 </div>
             {% endfor %}
+        </div>
+    </div>
+
+    <!-- Profile Image Modal -->
+    <div id="profileImageModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeProfileImageModal()">&times;</span>
+            <h2>Upload Profile Picture</h2>
+            <form id="profileImageForm" action="{{ url_for('upload_profile_image') }}" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="file" id="profileImageInput" name="profile_image" accept="image/*" onchange="previewProfileImage(event)" required>
+                <img id="profileImagePreview" src="#" alt="Profile Image Preview" style="display: none; margin-top: 10px; max-width: 100%;">
+                <button type="submit">Upload</button>
+            </form>
         </div>
     </div>
 
@@ -69,6 +83,24 @@
     </div>
 
     <script>
+        function openProfileImageModal() {
+            document.getElementById('profileImageModal').style.display = 'block';
+        }
+
+        function closeProfileImageModal() {
+            document.getElementById('profileImageModal').style.display = 'none';
+        }
+
+        function previewProfileImage(event) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const output = document.getElementById('profileImagePreview');
+                output.src = reader.result;
+                output.style.display = 'block';
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
         function openEditProfileModal() {
             document.getElementById('editProfileModal').style.display = 'block';
         }
