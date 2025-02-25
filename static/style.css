@@ -45,6 +45,15 @@
     left: 0;
     border: 1px solid black;
     padding: 25px;
+    background-image: url('images/background-login-image-6.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-color: rgba(255,255,255,0.2);
+    background-blend-mode: lighten;
+}
+
+#sidebar h1 {
+    color: white;
 }
 
 #sidebar ul{
@@ -54,27 +63,46 @@
     font-size: clamp(16px, 1vw, 50px);
 }
 
-#sidebar li{
+#sidebar li {
+    position: relative; /* Ensure the pseudo-element is positioned relative to the li */
     padding: 15px 0;
+    color: white;
+    cursor: pointer; /* Change cursor to pointer to indicate it's clickable */
+}
+
+#sidebar li::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.2); /* Initial background color with low opacity */
+    opacity: 0; /* Start with the pseudo-element hidden */
+    transition: opacity 0.3s ease; /* Smooth transition for opacity */
+    border-radius: 5px; /* Optional: Add border-radius to match the li */
+}
+
+#sidebar li:hover::before {
+    opacity: 1; /* Show the pseudo-element on hover */
 }
 
 #sidebar a{
     text-decoration: none;
-    color: black;
+    color: white;
     font-size: clamp(16px, 1vw, 50px);
 }
 
 #sidebar ion-icon {
     font-size: clamp(16px, 1vw, 50px);
-    color: black;
+    color: white;
     vertical-align: top;
     padding-right: 5px;
 }
 
 .logout_btn{
-    position: fixed;
-    bottom: 10px;
-    left: 25px;
+    position: relative;
+    vertical-align: bottom;
 }
 
 .nav_bar{
