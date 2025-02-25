@@ -67,6 +67,38 @@
     position: relative; /* Ensure the pseudo-element is positioned relative to the li */
     padding: 0; /* Remove padding from the li */
     margin-bottom: 10px; /* Add some space between the items */
+    opacity: 0; /* Start with the list items hidden */
+    animation: fadeIn 0.5s ease forwards; /* Apply fade-in animation */
+}
+
+#sidebar li:nth-child(1) {
+    animation-delay: 0.1s; /* Delay for the first item */
+}
+
+#sidebar li:nth-child(2) {
+    animation-delay: 0.2s; /* Delay for the second item */
+}
+
+#sidebar li:nth-child(3) {
+    animation-delay: 0.3s; /* Delay for the third item */
+}
+
+#sidebar li:nth-child(4) {
+    animation-delay: 0.4s; /* Delay for the fourth item */
+}
+
+#sidebar li:nth-child(5) {
+    animation-delay: 0.5s; /* Delay for the fifth item */
+}
+
+#sidebar li:nth-child(6) {
+    animation-delay: 0.6s; /* Delay for the fifth item */
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1; /* Fade in to full opacity */
+    }
 }
 
 #sidebar a {
@@ -74,7 +106,7 @@
     padding: 15px; /* Add padding to the link */
     color: white;
     text-decoration: none;
-    border-radius: 5px;;
+    border-radius: 5px;
     position: relative; /* Ensure the link is positioned relative to the li */
     z-index: 1; /* Ensure the link text is above the pseudo-element */
     transition: background-color 0.3s ease; /* Smooth transition for background color */
@@ -90,12 +122,12 @@
     margin-right: 10px; /* Add some space between the icon and the text */
 }
 
-.logout_btn{
+.logout_btn {
     position: relative;
     vertical-align: bottom;
 }
 
-.nav_bar{
+.nav_bar {
     list-style: none;
 }
 
@@ -104,6 +136,7 @@
     color: black;
     list-style: none;
 }
+
 .nav_item:hover {
     color: darkgray;
 }
