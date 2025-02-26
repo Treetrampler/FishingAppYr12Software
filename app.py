@@ -224,16 +224,15 @@ def register():
                 user_id = cursor.fetchone()[0]
                 session['user_id'] = user_id
                 session['username'] = username
+                session['pending_user'] = user_id
 
                 log_user_activity("logged in", username)
 
                 cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user_id,))
                 conn.commit()
                 flash('User registered successfully!', 'success')
-                if admin == 1:
-                    return redirect('/admin_home')
-                else:
-                    return redirect('/')
+                
+                return redirect('/setup_mfa')
         except sqlite3.IntegrityError:
             flash('A database integrity error occurred. Please try again.', 'error')
         except sqlite3.Error:
@@ -249,9 +248,7 @@ def setup_mfa():
     if 'pending_user' not in session:
         return redirect('/login')
     
-    print('1')
     user_id = session['pending_user']
-    print('2')
     # This will just retrieve the current MFA secret key for the user
     conn = sqlite3.connect('fishing_app.db')
     cursor = conn.cursor()
