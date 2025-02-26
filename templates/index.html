@@ -1,6 +1,6 @@
 {% extends 'main_layout.html' %}
 
-{% block body%}
+{% block body %}
 
 <div id="content">
     {% if 'user_id' in session %}
@@ -14,7 +14,8 @@
                 <h2>Create Post</h2>
                 <form action="{{ url_for('create_post') }}" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <input type="file" name="image" accept="image/*" required>
+                    <input type="file" name="image" accept="image/*" onchange="previewPostImage(event)" required>
+                    <img id="PostImagePreview" src="#" alt="Post Image Preview" style="display: none; margin-top: 10px; margin-bottom: 10px; max-width: 100%;">
                     <textarea name="caption" placeholder="Add a caption..."></textarea>
                     <button type="submit">Post</button>
                 </form>
@@ -22,13 +23,17 @@
         </div>
     {% endif %}
     <div class="posts">
-        {% for post in posts %}
-            <div class="post">
-                <h4>{{post[2]}}</h4>
-                <img src="{{ url_for('static', filename=post[0]) }}" alt="Post Image">
-                <p>{{ post[1] }}</p>
-            </div>
-        {% endfor %}
+        {% if posts %}
+            {% for post in posts %}
+                <div class="post">
+                    <h4>{{ post[2] }}</h4>
+                    <img src="{{ url_for('static', filename=post[0]) }}" alt="Post Image">
+                    <p>{{ post[1] }}</p>
+                </div>
+            {% endfor %}
+        {% else %}
+            <h2>Be the first to make a post!</h2>
+        {% endif %}
     </div>
 
     <script>
@@ -38,6 +43,16 @@
 
         function closeCreatePostModal() {
             document.getElementById('createPostModal').style.display = 'none';
+        }
+
+        function previewPostImage(event) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const output = document.getElementById('PostImagePreview');
+                output.src = reader.result;
+                output.style.display = 'block';
+            };
+            reader.readAsDataURL(event.target.files[0]);
         }
     </script>
 </div>

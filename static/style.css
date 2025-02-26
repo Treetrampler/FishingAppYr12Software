@@ -104,10 +104,6 @@ body {
     animation-delay: 0.5s; /* Delay for the fifth item */
 }
 
-#sidebar li:nth-child(6) {
-    animation-delay: 0.6s; /* Delay for the fifth item */
-}
-
 @keyframes fadeIn {
     to {
         opacity: 1; /* Fade in to full opacity */
@@ -229,6 +225,11 @@ body {
     text-align: center;
 }
 
+.posts h2 {
+    text-align: center;
+    vertical-align: center;
+}
+
 .post img {
     max-width: 100%;
     margin-bottom: 10px;
@@ -318,21 +319,58 @@ body {
     padding: 20px;
 }
 
+.profile_container h3{
+    text-align: center;
+}
+
 .profile_header {
     display: flex;
     align-items: center;
     margin-bottom: 20px;
 }
 
-.profile_image {
-    width: 200px;
+.profile_image_wrapper {
+    position: relative;
+    width: 150px;
     height: 150px;
     border-radius: 50%;
     margin-right: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.profile_details {
-    flex-grow: 1;
+.profile_image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: filter 0.3s ease-in-out;
+}
+
+.profile_overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.profile_image_wrapper:hover .profile_overlay {
+    opacity: 1;
+}
+
+.profile_overlay ion-icon {
+    color: white;
+    font-size: 30px;
 }
 
 .profile_details h1 {
@@ -398,7 +436,7 @@ body {
 .modal {
     display: none; /* Hidden by default */
     position: fixed; /* Stay in place */
-    z-index: 1; /* Sit on top */
+    z-index: 3; /* Sit on top */
     left: 0;
     top: 0;
     width: 100%; /* Full width */
@@ -411,7 +449,7 @@ body {
 .modal-content {
     text-align: center;
     background-color: #fefefe;
-    margin: 15% auto; /* 15% from the top and centered */
+    margin: 5% auto; /* 15% from the top and centered */
     padding: 20px;
     border: 1px solid #888;
     width: 80%; /* Adjust width to fit within the screen */
@@ -485,7 +523,7 @@ body {
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    z-index: 1000; /* Ensure it appears above other elements */
+    z-index: 2; /* Ensure it appears above other elements */
 }
 
 .open-modal-btn:hover {

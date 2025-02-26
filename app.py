@@ -1,7 +1,8 @@
 import sqlite3
 import re
 import os
-import uuid
+import pyotp
+import qrcode
 from flask import Flask, render_template, request, redirect, session, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -21,6 +22,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
 app.secret_key = 'd3b07384d113edec49eaa6238ad5ff00c86c392bd62329c75b90dbd174ca03eb'
 UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 LOG_FILE = "user_activity.log"
 FISH_LIST = ['Bass', 'Catfish', 'Crappie', 'Perch', 'Pike', 'Australian Salmon', 'Trout', 'Walleye', 'Bream', 'Mulloway', 'Mullet', 'Flathead', 'Whiting', 'Tailor']
 
@@ -70,6 +72,9 @@ def internal_error():
 def is_valid(item):
     return isinstance(item,str) and 1<=len(item)<=255 and re.match(r"^[a-zA-Z0-9\s.,-_]+$", item)
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
 def init_db():
     try:
         conn = sqlite3.connect('fishing_app.db')
@@ -79,7 +84,9 @@ def init_db():
         username TEXT NOT NULL, 
         password TEXT NOT NULL,
         email TEXT,
-        admin INTEGER NOT NULL)
+        admin INTEGER NOT NULL,
+        profile_image_path TEXT,
+        mfa_secret TEXT)
         ''')
         cursor.execute('''CREATE TABLE IF NOT EXISTS posts
         (post_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -159,19 +166,11 @@ def login():
             cursor.execute('SELECT * FROM user_data WHERE username = ?', (username,))
             user = cursor.fetchone()
             if user and check_password_hash(user[2], password):
-                session['user_id'] = user[0]
-                session['username'] = user[1]
-                session['csfr_token'] = str(uuid.uuid4())
-
-                log_user_activity("logged in", username)
-
-                cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user[0],))
-                conn.commit()
-
-                if user[4] == 1:
-                    return redirect('/admin_home')
-                else:
-                    return redirect('/')
+                session['pending_user'] = user[0]
+                if not user[6]:
+                    return redirect('/setup_mfa')
+                
+                return redirect('/verify_mfa')
             else:
                 flash('Invalid username or password.', 'error')
         except sqlite3.IntegrityError:
@@ -225,17 +224,15 @@ def register():
                 user_id = cursor.fetchone()[0]
                 session['user_id'] = user_id
                 session['username'] = username
-                session['csfr_token'] = str(uuid.uuid4())
+                session['pending_user'] = user_id
 
                 log_user_activity("logged in", username)
 
                 cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user_id,))
                 conn.commit()
                 flash('User registered successfully!', 'success')
-                if admin == 1:
-                    return redirect('/admin_home')
-                else:
-                    return redirect('/')
+                
+                return redirect('/setup_mfa')
         except sqlite3.IntegrityError:
             flash('A database integrity error occurred. Please try again.', 'error')
         except sqlite3.Error:
@@ -244,6 +241,72 @@ def register():
             conn.close()
 
     return render_template('register_page.html')
+
+@app.route('/setup_mfa')
+def setup_mfa():
+    print(0)
+    if 'pending_user' not in session:
+        return redirect('/login')
+    
+    user_id = session['pending_user']
+    # This will just retrieve the current MFA secret key for the user
+    conn = sqlite3.connect('fishing_app.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT mfa_secret FROM user_data WHERE user_id = ?", (user_id,))
+    secret = cursor.fetchone()[0]
+    # Creates a MFA secret key
+    if not secret:
+        secret = pyotp.random_base32()
+        cursor.execute("UPDATE user_data SET mfa_secret = ? WHERE user_id = ?", (secret, user_id))
+        conn.commit()
+    conn.close()
+    # Generate QR Code -> So the user can setup MFA on the MS Authenticator App
+    totp = pyotp.TOTP(secret)
+    uri = totp.provisioning_uri(name="Fishing App", issuer_name="Hamish Software")
+    
+    qr = qrcode.make(uri)
+    qr_path = "static/qrcode.png"
+    qr.save(qr_path)
+    return render_template("setup_mfa.html", qr_path=qr_path)
+
+@app.route('/verify_mfa', methods=['GET', 'POST'])
+def verify_mfa():
+    if 'pending_user' not in session:
+        return redirect('/login')
+    user_id = session['pending_user']
+    if request.method == 'POST':
+        # Retrieves the code from the text box
+        otp_code = request.form['otp']
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT mfa_secret FROM user_data WHERE user_id = ?", (user_id,))
+        secret = cursor.fetchone()[0]
+        cursor.execute('SELECT * FROM user_data WHERE user_id = ?', (user_id,))
+        user = cursor.fetchone()
+        username = user[1]
+        conn.close()
+        totp = pyotp.TOTP(secret)
+        # Compares the input code to the database 
+        if totp.verify(otp_code):
+            session['user_id'] = user_id
+            del session['pending_user']
+
+            session['user_id'] = user[0]
+            session['username'] = user[1]
+
+            log_user_activity("logged in", username)
+
+            conn = sqlite3.connect('fishing_app.db')
+            cursor = conn.cursor()
+            cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user[0],))
+            conn.commit()
+
+            if user[4] == 1:
+                return redirect('/admin_home')
+            else:
+                return redirect('/')
+        flash("Invalid 2FA code. Try again.", "error")
+    return render_template("verify_mfa.html")
 
 @app.route('/profile')
 def profile():
@@ -262,7 +325,7 @@ def profile():
         user_data = cursor.fetchone()
         
         # Fetch user posts
-        cursor.execute('SELECT post_id, image_path, caption FROM posts WHERE user_id = ?', (session['user_id'],))
+        cursor.execute('SELECT posts.post_id, posts.image_path, posts.caption, user_data.username FROM posts JOIN user_data ON posts.user_id = user_data.user_id WHERE posts.user_id = ?', (session['user_id'],))
         user_posts = cursor.fetchall()
         
     except sqlite3.IntegrityError:
@@ -274,6 +337,31 @@ def profile():
 
     return render_template('profile.html', user_data=user_data, user_posts=user_posts)
 
+@app.route('/upload_profile_image', methods=['POST'])
+def upload_profile_image():
+    if 'profile_image' not in request.files:
+        flash('No file part', 'error')
+        return redirect('/profile')
+    file = request.files['profile_image']
+    if file.filename == '':
+        flash('No selected file', 'error')
+        return redirect('/profile')
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        # Update the user's profile image in the database
+        user_id = session['user_id']
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        cursor.execute('UPDATE user_data SET profile_image_path = ? WHERE user_id = ?', (f'uploads/{filename}', user_id))
+        conn.commit()
+        conn.close()
+        flash('Profile image updated successfully', 'success')
+        return redirect('/profile')
+    else:
+        flash('File type not allowed', 'error')
+        return redirect('/profile')
+
 @app.route('/edit_profile', methods=['POST'])
 def edit_profile():
     if 'user_id' not in session:
@@ -281,22 +369,24 @@ def edit_profile():
         return redirect('/login')
     
     username = clean(request.form.get('username'))
-    print('editing profile')
-    
+
     if not is_valid(username):
         flash('Invalid username, try again', 'error')
         return redirect('/profile')
     
+    email = clean(request.form.get('email'))
+    
     try:
         safe_username = escape(username)
+        safe_email = escape(email)
         conn = sqlite3.connect('fishing_app.db')
         cursor = conn.cursor()
         print('runnning db')
         print(session['user_id'])
-        cursor.execute('UPDATE user_data SET username = ? WHERE user_id = ?', (safe_username, session['user_id']))
-        print('succesffuly updated')
+        cursor.execute('UPDATE user_data SET username = ?, email = ? WHERE user_id = ?', (safe_username, safe_email, session['user_id']))
+        print('succesfully updated')
         conn.commit()
-        flash(f'Username updated to {safe_username}', 'success')
+        flash('User info successfully updated!', 'success')
     except sqlite3.IntegrityError:
         flash('A database integrity error occurred. Please try again.', 'error')
     except sqlite3.Error:
@@ -383,13 +473,6 @@ def fish_identifier():
         return redirect('/')
     return render_template('identifier.html')
 
-@app.route('/map', methods=['GET'])
-def map():
-    if 'user_id' not in session:
-        flash('Please login to access this page.', 'error')
-        return redirect('/')
-    return render_template('map.html')
-
 @app.route('/fish_dex', methods=['GET', 'POST'])
 def fish_dex():
     if 'user_id' not in session:
@@ -418,7 +501,7 @@ def upload_fish_image():
     fish_id = request.form.get('fish_id')
     image = request.files['image']
     
-    if image:
+    if image and allowed_file(image.filename):
         try:
             filename = secure_filename(image.filename)
             image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
@@ -471,7 +554,7 @@ def create_post():
     
     image = request.files['image']
 
-    if image:
+    if image and allowed_file(image.filename):
         try:
             filename = secure_filename(image.filename)
             print(filename)
@@ -501,7 +584,7 @@ def create_post():
         finally:
             return redirect('/')
     else:
-        flash('Failed to create post. Please try again.', 'error')
+        flash('Invalid Image. Please try again.', 'error')
         return redirect('/')
     
 @app.route('/admin_home')
