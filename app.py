@@ -1,6 +1,8 @@
 import sqlite3
 import re
 import os
+import pyotp
+import qrcode
 from flask import Flask, render_template, request, redirect, session, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -83,7 +85,8 @@ def init_db():
         password TEXT NOT NULL,
         email TEXT,
         admin INTEGER NOT NULL,
-        profile_image_path TEXT)
+        profile_image_path TEXT,
+        mfa_secret TEXT)
         ''')
         cursor.execute('''CREATE TABLE IF NOT EXISTS posts
         (post_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -163,18 +166,11 @@ def login():
             cursor.execute('SELECT * FROM user_data WHERE username = ?', (username,))
             user = cursor.fetchone()
             if user and check_password_hash(user[2], password):
-                session['user_id'] = user[0]
-                session['username'] = user[1]
-
-                log_user_activity("logged in", username)
-
-                cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user[0],))
-                conn.commit()
-
-                if user[4] == 1:
-                    return redirect('/admin_home')
-                else:
-                    return redirect('/')
+                session['pending_user'] = user[0]
+                if not user[6]:
+                    return redirect('/setup_mfa')
+                
+                return redirect('/verify_mfa')
             else:
                 flash('Invalid username or password.', 'error')
         except sqlite3.IntegrityError:
@@ -246,6 +242,74 @@ def register():
             conn.close()
 
     return render_template('register_page.html')
+
+@app.route('/setup_mfa')
+def setup_mfa():
+    print(0)
+    if 'pending_user' not in session:
+        return redirect('/login')
+    
+    print('1')
+    user_id = session['pending_user']
+    print('2')
+    # This will just retrieve the current MFA secret key for the user
+    conn = sqlite3.connect('fishing_app.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT mfa_secret FROM user_data WHERE user_id = ?", (user_id,))
+    secret = cursor.fetchone()[0]
+    # Creates a MFA secret key
+    if not secret:
+        secret = pyotp.random_base32()
+        cursor.execute("UPDATE user_data SET mfa_secret = ? WHERE user_id = ?", (secret, user_id))
+        conn.commit()
+    conn.close()
+    # Generate QR Code -> So the user can setup MFA on the MS Authenticator App
+    totp = pyotp.TOTP(secret)
+    uri = totp.provisioning_uri(name="Fishing App", issuer_name="Hamish Software")
+    
+    qr = qrcode.make(uri)
+    qr_path = "static/qrcode.png"
+    qr.save(qr_path)
+    return render_template("setup_mfa.html", qr_path=qr_path)
+
+@app.route('/verify_mfa', methods=['GET', 'POST'])
+def verify_mfa():
+    if 'pending_user' not in session:
+        return redirect('/login')
+    user_id = session['pending_user']
+    if request.method == 'POST':
+        # Retrieves the code from the text box
+        otp_code = request.form['otp']
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT mfa_secret FROM user_data WHERE user_id = ?", (user_id,))
+        secret = cursor.fetchone()[0]
+        cursor.execute('SELECT * FROM user_data WHERE user_id = ?', (user_id,))
+        user = cursor.fetchone()
+        username = user[1]
+        conn.close()
+        totp = pyotp.TOTP(secret)
+        # Compares the input code to the database 
+        if totp.verify(otp_code):
+            session['user_id'] = user_id
+            del session['pending_user']
+
+            session['user_id'] = user[0]
+            session['username'] = user[1]
+
+            log_user_activity("logged in", username)
+
+            conn = sqlite3.connect('fishing_app.db')
+            cursor = conn.cursor()
+            cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user[0],))
+            conn.commit()
+
+            if user[4] == 1:
+                return redirect('/admin_home')
+            else:
+                return redirect('/')
+        flash("Invalid 2FA code. Try again.", "error")
+    return render_template("verify_mfa.html")
 
 @app.route('/profile')
 def profile():

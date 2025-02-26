@@ -1,0 +1,5 @@
+<form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="text" name="otp" placeholder="Enter 6-digit code" required>
+    <button type="submit">Verify</button>
+</form>
