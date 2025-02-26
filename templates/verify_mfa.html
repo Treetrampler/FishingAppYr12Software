@@ -1,5 +1,16 @@
-<form method="POST">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <input type="text" name="otp" placeholder="Enter 6-digit code" required>
-    <button type="submit">Verify</button>
-</form>
+{% extends 'login_layout.html' %}
+
+{% block body %}
+
+<div class="glass_container_mfa glass_container">
+    <div class="MFA_box">
+        <h2>Enter your MFA Code</h2>
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="text" name="otp" placeholder="Enter 6-digit code" required>
+            <button type="submit">Verify</button>
+        </form>
+    </div> 
+</div>
+
+{% endblock %}
