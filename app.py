@@ -308,22 +308,24 @@ def edit_profile():
         return redirect('/login')
     
     username = clean(request.form.get('username'))
-    print('editing profile')
-    
+
     if not is_valid(username):
         flash('Invalid username, try again', 'error')
         return redirect('/profile')
     
+    email = clean(request.form.get('email'))
+    
     try:
         safe_username = escape(username)
+        safe_email = escape(email)
         conn = sqlite3.connect('fishing_app.db')
         cursor = conn.cursor()
         print('runnning db')
         print(session['user_id'])
-        cursor.execute('UPDATE user_data SET username = ? WHERE user_id = ?', (safe_username, session['user_id']))
-        print('succesffuly updated')
+        cursor.execute('UPDATE user_data SET username = ?, email = ? WHERE user_id = ?', (safe_username, safe_email, session['user_id']))
+        print('succesfully updated')
         conn.commit()
-        flash(f'Username updated to {safe_username}', 'success')
+        flash('User info successfully updated!', 'success')
     except sqlite3.IntegrityError:
         flash('A database integrity error occurred. Please try again.', 'error')
     except sqlite3.Error:
@@ -410,13 +412,6 @@ def fish_identifier():
         return redirect('/')
     return render_template('identifier.html')
 
-@app.route('/map', methods=['GET'])
-def map():
-    if 'user_id' not in session:
-        flash('Please login to access this page.', 'error')
-        return redirect('/')
-    return render_template('map.html')
-
 @app.route('/fish_dex', methods=['GET', 'POST'])
 def fish_dex():
     if 'user_id' not in session:
@@ -445,7 +440,7 @@ def upload_fish_image():
     fish_id = request.form.get('fish_id')
     image = request.files['image']
     
-    if image:
+    if image and allowed_file(image.filename):
         try:
             filename = secure_filename(image.filename)
             image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
@@ -498,7 +493,7 @@ def create_post():
     
     image = request.files['image']
 
-    if image:
+    if image and allowed_file(image.filename):
         try:
             filename = secure_filename(image.filename)
             print(filename)
@@ -528,7 +523,7 @@ def create_post():
         finally:
             return redirect('/')
     else:
-        flash('Failed to create post. Please try again.', 'error')
+        flash('Invalid Image. Please try again.', 'error')
         return redirect('/')
     
 @app.route('/admin_home')
