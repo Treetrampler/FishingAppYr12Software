@@ -320,6 +320,11 @@ body {
 
 /* CSS STYLING FOR PROFILE PAGE */
 
+.hidden_info {
+    position: absolute;
+    left: -9000px;
+}
+
 .profile_container {
     margin: 0 auto;
     padding: 20px;
@@ -604,6 +609,10 @@ table a:hover {
 /* CSS STYLING FOR RESPONSIVE STUFF */
 
 @media (max-width: 430px) { /* STYLED FOR AN IPHONE 14 PRO MAX */
+    body {
+        min-height: 95vh;
+    }
+
     #sidebar {
         position: fixed;
         bottom: 0;
@@ -612,6 +621,7 @@ table a:hover {
         height: auto; /* Adjusts height automatically */
         border: none;
         margin-top: none;
+        z-index: 10000;
     }
 
     #sidebar h1, a {
@@ -655,14 +665,35 @@ table a:hover {
     #content {
         margin-left: 0; /* Remove left margin on small screens */
         width: 100%;
+        padding-bottom:  50px;
     }
 
     .posts {
         width: 90%;
+        margin: 0 auto;
     }
 
     .open-modal-btn {
         bottom: 10%;
         left: 50%;
+    }
+
+    .fish_ai_insert {
+        position: absolute;
+        top: 0;
+        left: 0; /* Leaves space for the sidebar */
+        width: 100%; /* Prevents overlap with the sidebar */
+        height: 93%;
+        border: none;
+    }
+
+    .found_fish, .unfound_fish {
+        grid-template-columns: repeat(2, 1fr); /* Create a 3-column grid */
+        width: 100%;
+    }
+
+    .hidden_info {
+        position: relative;
+        left: 0;
     }
 }
