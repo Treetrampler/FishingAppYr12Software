@@ -698,6 +698,10 @@ def edit_post():
     
     return redirect('/post_management')
 
+@app.route('/fishdex_management', methods=['GET'])
+def fishdex_management():
+    return render_template('fishdex_management.html')
+
 @app.route('/user_management', methods=['GET'])
 def user_management():
     user_data = []
