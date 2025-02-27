@@ -68,6 +68,7 @@ body {
 #sidebar h1 {
     color: white;
     text-align: center;
+    font-size: 45px;
 }
 
 #sidebar ul {
@@ -119,6 +120,7 @@ body {
     position: relative; /* Ensure the link is positioned relative to the li */
     z-index: 1; /* Ensure the link text is above the pseudo-element */
     transition: background-color 0.3s ease; /* Smooth transition for background color */
+    font-size: 20px;
 }
 
 #sidebar a:hover {
@@ -212,7 +214,7 @@ body {
 /* Style the posts */
 .posts {
     width: 100%;
-    max-width: 500px;
+    max-width: 750px; /* Limit the width of the posts */
 }
 
 .post {
@@ -225,11 +227,6 @@ body {
     text-align: center;
 }
 
-.posts h2 {
-    text-align: center;
-    vertical-align: center;
-}
-
 .post img {
     max-width: 100%;
     margin-bottom: 10px;
@@ -240,15 +237,24 @@ body {
 
 .post p {
     margin: 0;
-    text-align: left;
+    text-align: center;
     flex-grow: 1;
     padding-left: 20px;
+    font-size: 20px;
+}
+
+.posts h2 {
+    text-align: center;
+    vertical-align: center;
+    margin-top: 50px;
+    font-size: 30px;
 }
 
 .post h4 {
     text-align: center;
     vertical-align: center;
     margin-top: 0;
+    font-size: 25px;
 }
 
 /* CSS STYLING FOR THE FISH IDENTIFIER AI */
@@ -597,12 +603,53 @@ table a:hover {
 
 /* CSS STYLING FOR RESPONSIVE STUFF */
 
-@media (max-width: 768px) {
+@media (max-width: 430px) { /* STYLED FOR AN IPHONE 14 PRO MAX */
     #sidebar {
-        position: relative; /* Sidebar moves with content */
+        position: fixed;
+        bottom: 0;
+        top: 93%;
         width: 100%; /* Sidebar spans full width */
         height: auto; /* Adjusts height automatically */
-        text-align: center;
+        border: none;
+        margin-top: none;
+    }
+
+    #sidebar h1, a {
+        visibility: hidden;
+        position: fixed;
+        left: -9000px;
+    }
+
+    #sidebar h1 {
+        position: fixed;
+        left: -9000px;
+    }
+
+    #sidebar ion-icon {
+        visibility: visible;
+        position: fixed;
+        top: 94%;
+        font-size: 50px;
+    }
+
+    .nav_1 {
+        left: 10%;
+    }
+
+    .nav_2 {
+        left: 27.5%;
+    }
+
+    .nav_3 {
+        left: 45%;
+    }
+
+    .nav_4 {
+        left: 62.5%;
+    }
+
+    .nav_5 {
+        left: 80%;
     }
 
     #content {
@@ -611,12 +658,11 @@ table a:hover {
     }
 
     .posts {
-        width: 100%;
+        width: 90%;
     }
 
-    .logout_btn {
-        position: relative;
-        text-align: center; /* Center the logout button */
-        display: inline-block; /* Ensure it behaves like other menu items */
+    .open-modal-btn {
+        bottom: 10%;
+        left: 50%;
     }
 }

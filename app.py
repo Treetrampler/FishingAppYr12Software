@@ -57,16 +57,16 @@ def log_user_activity(action, username):
         log_file.write(f"{timestamp} - {username} {action}\n")
 
 @app.errorhandler(400)
-def bad_request_error():
+def bad_request_error(error):
     return render_template('error.html', message="Bad Request: Please check your input."), 400
 @app.errorhandler(403)
-def forbidden_error():
+def forbidden_error(error):
     return render_template('error.html', message="Forbidden: You don’t have permission to access this."), 403
 @app.errorhandler(404)
-def not_found_error():
+def not_found_error(error):
     return render_template('error.html', message="Page Not Found: The resource you requested does not exist."), 404
 @app.errorhandler(500)
-def internal_error():
+def internal_error(error):
     return render_template('error.html', message="Internal Server Error: Something went wrong on our end."), 500
 
 def is_valid(item):
@@ -167,10 +167,15 @@ def login():
             user = cursor.fetchone()
             if user and check_password_hash(user[2], password):
                 session['pending_user'] = user[0]
+
                 if not user[6]:
                     return redirect('/setup_mfa')
                 
-                return redirect('/verify_mfa')
+                session['user_id'] = user[0]  # SHOULD BE DELETED WHEN MFA IS ON
+                session['username'] = user[1]
+                
+                return redirect('/') # SHOULD BE REDIRECTING TO VERIFY MFA, CURRENTLY CHANGED FOR DEBUGGING!!!!!!!!!!!!!!!!!!!!!!!!!
+            
             else:
                 flash('Invalid username or password.', 'error')
         except sqlite3.IntegrityError:
@@ -222,8 +227,6 @@ def register():
                 conn.commit()
                 cursor.execute('SELECT user_id FROM user_data WHERE username = ?', (username,))
                 user_id = cursor.fetchone()[0]
-                session['user_id'] = user_id
-                session['username'] = username
                 session['pending_user'] = user_id
 
                 log_user_activity("logged in", username)
@@ -289,10 +292,8 @@ def verify_mfa():
         # Compares the input code to the database 
         if totp.verify(otp_code):
             session['user_id'] = user_id
-            del session['pending_user']
-
-            session['user_id'] = user[0]
             session['username'] = user[1]
+            del session['pending_user']            
 
             log_user_activity("logged in", username)
 
