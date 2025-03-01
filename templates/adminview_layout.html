@@ -24,25 +24,31 @@
                 <ul>
                     <li>
                         <a href="{{ url_for('admin_home') }}" class="nav_item">
-                            <ion-icon name="home-outline"></ion-icon>
+                            <ion-icon name="home-outline" class="nav_1"></ion-icon>
                             Home
                         </a>
                     </li>
                     <li>
                         <a href="{{ url_for('user_management') }}" class="nav_item">
-                            <ion-icon name="people-outline"></ion-icon>
+                            <ion-icon name="people-outline" class="nav_2"></ion-icon>
                             User Management
                         </a>
                     </li>
                     <li>
                         <a href="{{ url_for('post_management') }}" class="nav_item">
-                            <ion-icon name="albums-outline"></ion-icon>
+                            <ion-icon name="albums-outline" class="nav_3"></ion-icon>
                             Post Management
                         </a>
                     </li>
                     <li>
+                        <a href="{{ url_for('fishdex_management') }}" class="nav_item">
+                            <ion-icon name="fish-outline" class="nav_4"></ion-icon>
+                            Dex Management
+                        </a>
+                    </li>
+                    <li>
                         <a href="{{ url_for('logout') }}" class="logout_btn">
-                            <ion-icon name="exit-outline"></ion-icon>
+                            <ion-icon name="exit-outline" class="nav_5"></ion-icon>
                             Logout
                         </a>
                     </li>

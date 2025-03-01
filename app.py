@@ -17,7 +17,7 @@ from flask_wtf.csrf import CSRFProtect
 app = Flask(__name__)
 csrf = CSRFProtect(app)
 
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=1)
 
 app.secret_key = 'd3b07384d113edec49eaa6238ad5ff00c86c392bd62329c75b90dbd174ca03eb'
 UPLOAD_FOLDER = 'static/uploads'
@@ -40,16 +40,18 @@ def enforce_https():
         return redirect(request.url.replace("http://", "https://"))
     
 @app.before_request
-def session_log(): 
+def session_log():
+    session.permanent = True 
+
     if 'user_id' in session:
         session.modified = True  # Refresh session expiration
-    else:
-        if 'username' in session:
+        print('1')
+    elif session.get('username'):
             log_user_activity("session expired", session['username'])
             session.clear()
-    
-def make_session_permanent():
-    session.permanent = True
+            print('2')
+    else:
+        print('3')
 
 def log_user_activity(action, username):
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -57,16 +59,16 @@ def log_user_activity(action, username):
         log_file.write(f"{timestamp} - {username} {action}\n")
 
 @app.errorhandler(400)
-def bad_request_error():
+def bad_request_error(error):
     return render_template('error.html', message="Bad Request: Please check your input."), 400
 @app.errorhandler(403)
-def forbidden_error():
+def forbidden_error(error):
     return render_template('error.html', message="Forbidden: You don’t have permission to access this."), 403
 @app.errorhandler(404)
-def not_found_error():
+def not_found_error(error):
     return render_template('error.html', message="Page Not Found: The resource you requested does not exist."), 404
 @app.errorhandler(500)
-def internal_error():
+def internal_error(error):
     return render_template('error.html', message="Internal Server Error: Something went wrong on our end."), 500
 
 def is_valid(item):
@@ -166,11 +168,19 @@ def login():
             cursor.execute('SELECT * FROM user_data WHERE username = ?', (username,))
             user = cursor.fetchone()
             if user and check_password_hash(user[2], password):
-                session['pending_user'] = user[0]
-                if not user[6]:
-                    return redirect('/setup_mfa')
-                
-                return redirect('/verify_mfa')
+                if user[6]:
+                    session['pending_user'] = user[0]
+                    return redirect('/verify_mfa')
+                else:
+                    session['user_id'] = user[0]
+                    session['username'] = user[1]   
+                    log_user_activity("logged in", username)
+                    conn = sqlite3.connect('fishing_app.db')
+                    cursor = conn.cursor()
+                    cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user[0],))
+                    conn.commit()
+                    return redirect('/')
+            
             else:
                 flash('Invalid username or password.', 'error')
         except sqlite3.IntegrityError:
@@ -201,8 +211,8 @@ def register():
             return redirect('/register')
         
         hashed_password = generate_password_hash(password)
-
         email = clean(request.form['email'])
+        mfa = 'mfa' in request.form
 
         try:
             conn = sqlite3.connect('fishing_app.db')
@@ -221,18 +231,21 @@ def register():
                 cursor.execute('INSERT INTO user_data (username, password, email, admin) VALUES (?, ?, ?, ?)', (safe_username, hashed_password, safe_email, admin))
                 conn.commit()
                 cursor.execute('SELECT user_id FROM user_data WHERE username = ?', (username,))
-                user_id = cursor.fetchone()[0]
-                session['user_id'] = user_id
-                session['username'] = username
-                session['pending_user'] = user_id
-
-                log_user_activity("logged in", username)
-
-                cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user_id,))
-                conn.commit()
+                user_id = cursor.fetchone()[0]                
                 flash('User registered successfully!', 'success')
-                
-                return redirect('/setup_mfa')
+                if mfa:
+                    session['pending_user'] = user_id
+                    conn.close()
+                    return redirect('/setup_mfa')
+                else:
+                    log_user_activity("logged in", username)
+                    cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user_id,))
+                    conn.commit()
+                    conn.close()
+                    session['user_id'] = user_id
+                    session['username'] = username
+                    return redirect('/')
+
         except sqlite3.IntegrityError:
             flash('A database integrity error occurred. Please try again.', 'error')
         except sqlite3.Error:
@@ -289,10 +302,8 @@ def verify_mfa():
         # Compares the input code to the database 
         if totp.verify(otp_code):
             session['user_id'] = user_id
-            del session['pending_user']
-
-            session['user_id'] = user[0]
             session['username'] = user[1]
+            del session['pending_user']            
 
             log_user_activity("logged in", username)
 
@@ -589,6 +600,9 @@ def create_post():
     
 @app.route('/admin_home')
 def admin_home():
+    if 'user_id' not in session:
+        flash('Please login to access this page.', 'error')
+        return redirect('/')
     return render_template('admin_home.html')
 
 @app.route('/get_logged_in_users', methods=['GET'])
@@ -598,8 +612,9 @@ def get_logged_in_users():
         cursor = conn.cursor()
         
         # Fetch timestamps from database (assuming they are stored in UTC)
-        cursor.execute('SELECT login_time, COUNT(*) FROM user_sessions WHERE active = 1 GROUP BY login_time')
+        cursor.execute('SELECT login_time, count(*) FROM user_sessions WHERE active = 1 GROUP BY login_time')
         data = cursor.fetchall()
+        print(data)
         
         # Define timezones
         utc_tz = pytz.utc
@@ -615,6 +630,9 @@ def get_logged_in_users():
 
             timestamps.append(aest_time.strftime("%Y-%m-%d %H:%M"))  # Format properly
             logged_in_users.append(row[1])
+            print(row[1])
+
+        #logged_in_users = [len(timestamps)]
 
         return jsonify({
             'timestamps': timestamps,
@@ -696,6 +714,10 @@ def edit_post():
         conn.close()
     
     return redirect('/post_management')
+
+@app.route('/fishdex_management', methods=['GET'])
+def fishdex_management():
+    return render_template('fishdex_management.html')
 
 @app.route('/user_management', methods=['GET'])
 def user_management():

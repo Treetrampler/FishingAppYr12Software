@@ -15,7 +15,7 @@
                 <button class="edit_profile_btn" onclick="openEditProfileModal()">Edit Profile</button>
             </div>
         </div>
-        <h3>--- Posts ---</h3>
+        <h3>--- Posts <span class="hidden_info">- Tap to Edit </span>---</h3>
         <div class="posts">
             {% for post in user_posts %}
                 <div class="post">
@@ -86,7 +86,6 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" id="delete_post_id" name="post_id">
                 <button type="submit">Delete</button>
-                <button type="button" onclick="closeDeletePostModal()">Cancel</button>
             </form>
         </div>
     </div>
