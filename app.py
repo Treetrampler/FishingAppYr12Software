@@ -166,15 +166,18 @@ def login():
             cursor.execute('SELECT * FROM user_data WHERE username = ?', (username,))
             user = cursor.fetchone()
             if user and check_password_hash(user[2], password):
-                session['pending_user'] = user[0]
-
-                if not user[6]:
-                    return redirect('/setup_mfa')
-                
-                session['user_id'] = user[0]  # SHOULD BE DELETED WHEN MFA IS ON
-                session['username'] = user[1]
-                
-                return redirect('/') # SHOULD BE REDIRECTING TO VERIFY MFA, CURRENTLY CHANGED FOR DEBUGGING!!!!!!!!!!!!!!!!!!!!!!!!!
+                if user[6]:
+                    session['pending_user'] = user[0]
+                    return redirect('/verify_mfa')
+                else:
+                    session['user_id'] = user[0]
+                    session['username'] = user[1]   
+                    log_user_activity("logged in", username)
+                    conn = sqlite3.connect('fishing_app.db')
+                    cursor = conn.cursor()
+                    cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user[0],))
+                    conn.commit()
+                    return redirect('/')
             
             else:
                 flash('Invalid username or password.', 'error')
@@ -206,8 +209,8 @@ def register():
             return redirect('/register')
         
         hashed_password = generate_password_hash(password)
-
         email = clean(request.form['email'])
+        mfa = 'mfa' in request.form
 
         try:
             conn = sqlite3.connect('fishing_app.db')
@@ -226,16 +229,21 @@ def register():
                 cursor.execute('INSERT INTO user_data (username, password, email, admin) VALUES (?, ?, ?, ?)', (safe_username, hashed_password, safe_email, admin))
                 conn.commit()
                 cursor.execute('SELECT user_id FROM user_data WHERE username = ?', (username,))
-                user_id = cursor.fetchone()[0]
-                session['pending_user'] = user_id
-
-                log_user_activity("logged in", username)
-
-                cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user_id,))
-                conn.commit()
+                user_id = cursor.fetchone()[0]                
                 flash('User registered successfully!', 'success')
-                
-                return redirect('/setup_mfa')
+                if mfa:
+                    session['pending_user'] = user_id
+                    conn.close()
+                    return redirect('/setup_mfa')
+                else:
+                    log_user_activity("logged in", username)
+                    cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user_id,))
+                    conn.commit()
+                    conn.close()
+                    session['user_id'] = user_id
+                    session['username'] = username
+                    return redirect('/')
+
         except sqlite3.IntegrityError:
             flash('A database integrity error occurred. Please try again.', 'error')
         except sqlite3.Error:

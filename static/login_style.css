@@ -52,6 +52,15 @@ body {
     object-fit: contain; /* Ensure the image fits within the box without expanding */
 }
 
+
+.mfa_checkbox {
+    color: white;
+}
+
+.mfa_checkbox input[type="checkbox"] {
+    margin-right: 10px;
+}
+
 @keyframes shrink1 {
     0% {
         height: 400px;
