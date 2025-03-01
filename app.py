@@ -17,7 +17,7 @@ from flask_wtf.csrf import CSRFProtect
 app = Flask(__name__)
 csrf = CSRFProtect(app)
 
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=1)
 
 app.secret_key = 'd3b07384d113edec49eaa6238ad5ff00c86c392bd62329c75b90dbd174ca03eb'
 UPLOAD_FOLDER = 'static/uploads'
@@ -40,16 +40,18 @@ def enforce_https():
         return redirect(request.url.replace("http://", "https://"))
     
 @app.before_request
-def session_log(): 
+def session_log():
+    session.permanent = True 
+
     if 'user_id' in session:
         session.modified = True  # Refresh session expiration
-    else:
-        if 'username' in session:
+        print('1')
+    elif session.get('username'):
             log_user_activity("session expired", session['username'])
             session.clear()
-    
-def make_session_permanent():
-    session.permanent = True
+            print('2')
+    else:
+        print('3')
 
 def log_user_activity(action, username):
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -598,6 +600,9 @@ def create_post():
     
 @app.route('/admin_home')
 def admin_home():
+    if 'user_id' not in session:
+        flash('Please login to access this page.', 'error')
+        return redirect('/')
     return render_template('admin_home.html')
 
 @app.route('/get_logged_in_users', methods=['GET'])
@@ -607,8 +612,9 @@ def get_logged_in_users():
         cursor = conn.cursor()
         
         # Fetch timestamps from database (assuming they are stored in UTC)
-        cursor.execute('SELECT login_time, COUNT(*) FROM user_sessions WHERE active = 1 GROUP BY login_time')
+        cursor.execute('SELECT login_time, count(*) FROM user_sessions WHERE active = 1 GROUP BY login_time')
         data = cursor.fetchall()
+        print(data)
         
         # Define timezones
         utc_tz = pytz.utc
@@ -624,6 +630,9 @@ def get_logged_in_users():
 
             timestamps.append(aest_time.strftime("%Y-%m-%d %H:%M"))  # Format properly
             logged_in_users.append(row[1])
+            print(row[1])
+
+        #logged_in_users = [len(timestamps)]
 
         return jsonify({
             'timestamps': timestamps,
