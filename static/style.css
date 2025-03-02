@@ -628,7 +628,7 @@ table a:hover {
         z-index: 10000;
     }
 
-    #sidebar h1, a {
+    #sidebar h1, #sidebar a {
         visibility: hidden;
         position: fixed;
         left: -9000px;
@@ -699,5 +699,43 @@ table a:hover {
     .hidden_info {
         position: relative;
         left: 0;
+    }
+
+    /* Responsive styling for admin tables */
+    table {
+        width: 100%; /* Full width on small screens */
+        font-size: 14px; /* Smaller font size for better readability */
+    }
+
+    table th, table td {
+        padding: 8px; /* Smaller padding for better fit */
+    }
+
+    table thead {
+        display: none; /* Hide table headers on small screens */
+    }
+
+    table tr {
+        display: block; /* Display rows as blocks */
+        margin-bottom: 10px; /* Add space between rows */
+    }
+
+    table td {
+        display: flex; /* Display cells as flex items */
+        justify-content: space-between; /* Space out the content */
+        padding: 10px; /* Add padding for better readability */
+        border: 1px solid #ddd; /* Add border for better separation */
+        position: relative; /* Ensure the pseudo-element is positioned relative to the td */
+        padding-left: 50%; /* Add padding to the left to make space for the pseudo-element */
+    }
+
+    table td::before {
+        content: attr(data-label); /* Use data-label attribute for cell labels */
+        position: absolute; /* Position the pseudo-element absolutely */
+        left: 10px; /* Position it to the left */
+        width: 45%; /* Set a fixed width */
+        white-space: nowrap; /* Prevent text from wrapping */
+        font-weight: bold; /* Bold labels */
+        text-transform: uppercase; /* Uppercase labels */
     }
 }
