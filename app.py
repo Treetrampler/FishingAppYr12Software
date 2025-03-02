@@ -17,7 +17,7 @@ from flask_wtf.csrf import CSRFProtect
 app = Flask(__name__)
 csrf = CSRFProtect(app)
 
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=1)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
 
 app.secret_key = 'd3b07384d113edec49eaa6238ad5ff00c86c392bd62329c75b90dbd174ca03eb'
 UPLOAD_FOLDER = 'static/uploads'
@@ -716,7 +716,49 @@ def fishdex_management():
     if 'admin' not in session:
         flash('Please login to access this page.', 'error')
         return redirect('/')
-    return render_template('fishdex_management.html')
+    
+    leaderboard = []
+    try:
+        # Fetch leaderboard data
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT user_data.username, COUNT(user_fishdata.fish_id) AS fish_count
+            FROM user_data
+            LEFT JOIN user_fishdata ON user_data.user_id = user_fishdata.user_id
+            GROUP BY user_data.user_id
+            ORDER BY fish_count DESC
+            LIMIT 10
+        ''')
+        leaderboard = cursor.fetchall()
+        leaderboard = [{'username': row[0], 'fish_count': row[1]} for row in leaderboard]
+    except sqlite3.Error as e:
+        flash(f'A database error occurred: {str(e)}', 'error')
+    finally:
+        conn.close()
+    
+    return render_template('fishdex_management.html', fish_list=FISH_LIST, leaderboard=leaderboard)
+
+@app.route('/wipe_fishdex', methods=['POST'])
+def wipe_fishdex():
+    username = request.form['username']
+    try:
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT user_id FROM user_data WHERE username = ?', (username,))
+        user = cursor.fetchone()
+        if user:
+            user_id = user[0]
+            cursor.execute('DELETE FROM user_fishdata WHERE user_id = ?', (user_id,))
+            conn.commit()
+            flash('FishDex data wiped successfully!', 'success')
+        else:
+            flash('User not found.', 'error')
+    except sqlite3.Error as e:
+        flash(f'A database error occurred: {str(e)}', 'error')
+    finally:
+        conn.close()
+    return redirect('/fishdex_management')
 
 @app.route('/user_management', methods=['GET'])
 def user_management():
