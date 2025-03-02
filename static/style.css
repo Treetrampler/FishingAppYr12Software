@@ -662,6 +662,8 @@ form button:hover {
         border: none;
         margin-top: none;
         z-index: 10000;
+        display: flex;
+        justify-content: space-evenly;
     }
 
     #sidebar h1, #sidebar a {

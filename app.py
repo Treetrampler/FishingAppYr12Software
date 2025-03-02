@@ -3,6 +3,7 @@ import re
 import os
 import pyotp
 import qrcode
+import atexit
 from flask import Flask, render_template, request, redirect, session, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -13,6 +14,7 @@ from datetime import timedelta, datetime
 import pytz
 from bleach import clean
 from flask_wtf.csrf import CSRFProtect
+from apscheduler.schedulers.background import BackgroundScheduler
 
 app = Flask(__name__)
 csrf = CSRFProtect(app)
@@ -113,6 +115,38 @@ def init_db():
         conn.close()
 
 init_db() #calls the function to init the db
+
+def end_old_sessions():
+    print('running')
+    try:
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE user_sessions
+            SET logout_time = CURRENT_TIMESTAMP, active = 0
+            WHERE active = 1 AND login_time <= datetime('now', '-12 hours')
+        ''')
+        conn.commit()
+        # Log the session end activity
+        cursor.execute('''
+            SELECT user_id FROM user_sessions
+            WHERE active = 0 AND logout_time = CURRENT_TIMESTAMP
+        ''')
+        ended_sessions = cursor.fetchall()
+        for session in ended_sessions:
+            cursor.execute('SELECT username FROM user_data WHERE user_id = ?', (session[0],))
+            username = cursor.fetchone()[0]
+            log_user_activity("session expired", username)
+    except sqlite3.Error as e:
+        print(f"Database error occurred: {str(e)}")
+    finally:
+        conn.close()
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(func=end_old_sessions, trigger="interval", minutes=1)
+scheduler.start()
+
+atexit.register(lambda: scheduler.shutdown())
 
 @limiter.exempt
 @app.route('/') #the main page, creates the home page
