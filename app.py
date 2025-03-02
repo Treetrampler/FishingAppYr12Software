@@ -44,15 +44,6 @@ def session_log():
 
     if 'user_id' in session:
         session.modified = True  # Refresh session expiration
-        print('1')
-    else:
-        username = session.get('username')
-        print(username)
-        if username:
-            log_user_activity("session expired", session['username'])
-            session.clear()
-            print('logged session')
-        print('2')
 
 def log_user_activity(action, username):
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -61,13 +52,13 @@ def log_user_activity(action, username):
 
 @app.errorhandler(400)
 def bad_request_error(error):
-    return render_template('error.html', message="Bad Request: Please check your input."), 400
+    return render_template('error.html', message=f"Bad Request: {str(error)}"), 400
 @app.errorhandler(403)
 def forbidden_error(error):
-    return render_template('error.html', message="Forbidden: You don’t have permission to access this."), 403
+    return render_template('error.html', message=f"Forbidden: {str(error)}"), 403
 @app.errorhandler(404)
 def not_found_error(error):
-    return render_template('error.html', message="Page Not Found: The resource you requested does not exist."), 404
+    return render_template('error.html', message=f"Page Not Found: {str(error)}"), 404
 @app.errorhandler(500)
 def internal_error(error):
     return render_template('error.html', message=f"Internal Server Error: {str(error)}"), 500
@@ -146,6 +137,7 @@ def index():
         conn.close()
 
     if admin == 1:
+        session['admin'] = True
         return render_template('admin_home.html')
     else:
         return render_template('index.html', posts=posts)
@@ -316,11 +308,7 @@ def verify_mfa():
             cursor = conn.cursor()
             cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user[0],))
             conn.commit()
-
-            if user[4] == 1:
-                return redirect('/admin_home')
-            else:
-                return redirect('/')
+            return redirect('/')
         flash("Invalid 2FA code. Try again.", "error")
     return render_template("verify_mfa.html")
 
@@ -605,7 +593,7 @@ def create_post():
 
 @app.route('/admin_home')
 def admin_home():
-    if 'user_id' not in session:
+    if 'admin' not in session:
         flash('Please login to access this page.', 'error')
         return redirect('/')
     return render_template('admin_home.html')
@@ -651,6 +639,9 @@ def get_logged_in_users():
 
 @app.route('/post_management', methods=['GET'])
 def post_management():
+    if 'admin' not in session:
+        flash('Please login to access this page.', 'error')
+        return redirect('/')
     post_data = []
     try:
         conn = sqlite3.connect('fishing_app.db')
@@ -722,10 +713,16 @@ def edit_post():
 
 @app.route('/fishdex_management', methods=['GET'])
 def fishdex_management():
+    if 'admin' not in session:
+        flash('Please login to access this page.', 'error')
+        return redirect('/')
     return render_template('fishdex_management.html')
 
 @app.route('/user_management', methods=['GET'])
 def user_management():
+    if 'admin' not in session:
+        flash('Please login to access this page.', 'error')
+        return redirect('/')
     user_data = []
     try:
         conn = sqlite3.connect('fishing_app.db')
