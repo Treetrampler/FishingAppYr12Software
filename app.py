@@ -318,6 +318,7 @@ def setup_mfa():
 def verify_mfa():
     if 'pending_user' not in session:
         return redirect('/login')
+    
     user_id = session['pending_user']
     if request.method == 'POST':
         # Retrieves the code from the text box
@@ -378,6 +379,10 @@ def profile():
 
 @app.route('/upload_profile_image', methods=['POST'])
 def upload_profile_image():
+    if 'user_id' not in session:
+        flash('Please login to access this method.', 'error')
+        return redirect('/login')
+
     if 'profile_image' not in request.files:
         flash('No file part', 'error')
         return redirect('/profile')
@@ -438,7 +443,7 @@ def edit_profile():
 @app.route('/user_edit_post', methods=['POST'])
 def user_edit_post():
     if 'user_id' not in session:
-        flash('Please login to access this page.', 'error')
+        flash('Please login to access this method.', 'error')
         return redirect('/login')
 
     post_id = request.form.get('post_id')
@@ -467,7 +472,7 @@ def user_edit_post():
 @app.route('/user_delete_post', methods=['POST'])
 def user_delete_post():
     if 'user_id' not in session:
-        flash('Please login to access this page.', 'error')
+        flash('Please login to access this method.', 'error')
         return redirect('/login')
 
     post_id = request.form.get('post_id')
@@ -535,7 +540,7 @@ def fish_dex():
 @app.route('/upload_fish_image', methods=['POST'])
 def upload_fish_image():
     if 'user_id' not in session:
-        flash('Please login to access this page.', 'error')
+        flash('Please login to access this method.', 'error')
         return redirect('/')
     fish_id = request.form.get('fish_id')
     image = request.files['image']
@@ -582,7 +587,7 @@ def upload_fish_image():
 @app.route('/create_post', methods=['POST'])
 def create_post():
     if 'user_id' not in session:
-        flash('Please login to access this page.', 'error')
+        flash('Please login to access this method.', 'error')
         return redirect('/')
 
     caption = clean(request.form.get('caption'))
@@ -635,6 +640,10 @@ def admin_home():
 
 @app.route('/get_logged_in_users', methods=['GET'])
 def get_logged_in_users():
+    if 'admin' not in session:
+        flash('Please login to access this method.', 'error')
+        return redirect('/')
+
     try:
         conn = sqlite3.connect('fishing_app.db')
         cursor = conn.cursor()
@@ -677,6 +686,7 @@ def post_management():
     if 'admin' not in session:
         flash('Please login to access this page.', 'error')
         return redirect('/')
+    
     post_data = []
     try:
         conn = sqlite3.connect('fishing_app.db')
@@ -776,6 +786,10 @@ def fishdex_management():
 
 @app.route('/wipe_fishdex', methods=['POST'])
 def wipe_fishdex():
+    if 'admin' not in session:
+        flash('Please login to access this method.', 'error')
+        return redirect('/')
+
     username = request.form['username']
     try:
         conn = sqlite3.connect('fishing_app.db')
@@ -800,6 +814,7 @@ def user_management():
     if 'admin' not in session:
         flash('Please login to access this page.', 'error')
         return redirect('/')
+    
     user_data = []
     try:
         conn = sqlite3.connect('fishing_app.db')
@@ -816,8 +831,8 @@ def user_management():
 
 @app.route('/edit_user', methods=['POST'])
 def edit_user():
-    if 'user_id' not in session:
-        flash('Please login to access this page.', 'error')
+    if 'admin' not in session:
+        flash('Please login to access this method.', 'error')
         return redirect('/login')
 
     user_id = request.form.get('user_id')
@@ -846,8 +861,8 @@ def edit_user():
 
 @app.route('/delete_user', methods=['POST'])
 def delete_user():
-    if 'user_id' not in session:
-        flash('Please login to access this page.', 'error')
+    if 'admin' not in session:
+        flash('Please login to access this method.', 'error')
         return redirect('/login')
 
     user_id = request.form.get('user_id')
