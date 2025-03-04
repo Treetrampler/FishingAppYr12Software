@@ -364,7 +364,7 @@ def profile():
         user_data = cursor.fetchone()
 
         # Fetch user posts
-        cursor.execute('SELECT posts.post_id, posts.image_path, posts.caption, user_data.username FROM posts JOIN user_data ON posts.user_id = user_data.user_id WHERE posts.user_id = ?', (session['user_id'],))
+        cursor.execute('SELECT posts.post_id, posts.image_path, posts.caption, user_data.username, user_data.profile_image_path FROM posts JOIN user_data ON posts.user_id = user_data.user_id WHERE posts.user_id = ?', (session['user_id'],))
         user_posts = cursor.fetchall()
 
     except sqlite3.IntegrityError:
