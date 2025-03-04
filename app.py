@@ -143,7 +143,7 @@ def end_old_sessions():
         conn.close()
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(func=end_old_sessions, trigger="interval", minutes=1)
+scheduler.add_job(func=end_old_sessions, trigger="interval", hours=1)
 scheduler.start()
 
 atexit.register(lambda: scheduler.shutdown())
@@ -154,8 +154,9 @@ def index():
     try:
         conn = sqlite3.connect('fishing_app.db')
         cursor = conn.cursor()
-        cursor.execute('SELECT posts.image_path, posts.caption, user_data.username FROM posts JOIN user_data ON posts.user_id = user_data.user_id ORDER BY posts.post_id DESC')
+        cursor.execute('SELECT posts.image_path, posts.caption, user_data.username, user_data.profile_image_path FROM posts JOIN user_data ON posts.user_id = user_data.user_id ORDER BY posts.post_id DESC LIMIT 20')
         posts = cursor.fetchall()
+        print(posts[1][3])
         admin = 0
 
         if 'user_id' in session:
