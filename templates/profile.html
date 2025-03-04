@@ -33,7 +33,10 @@
                     <h4>{{ post[3] }}</h4>
                 </div>
                 <img src="{{ url_for('static', filename=post[1]) }}" alt="Post Image">
-                <p>{{ post[2] }}</p>
+                <div class="post_footer">
+                    <h4>{{ post[3] }}:</h4>
+                    <p>{{ post[2] }}</p>
+                </div>
             </div>
         {% endfor %}
     </div>
