@@ -259,3 +259,46 @@ p {
     background-color: #4CAF50; /* Green background for success */
     color: white;
 }
+
+@media (max-width: 430px) { /* STYLED FOR AN IPHONE 14 PRO MAX */
+    .glass_container,
+    .glass_container_login,
+    .glass_container_register,
+    .glass_container_mfa,
+    .glass_container_mfa_setup {
+        display: contents; /* Removes the container but keeps child elements visible */
+        width: 100vw;
+        
+    }
+
+    form {
+        width: 90%; /* Ensure form takes most of the screen width */
+        margin: 0 auto; /* Center the form */
+        padding: 0;
+        display: block;
+        position: absolute;
+        top: 30%;
+        left: 5%;
+    }
+
+    input {
+        width: 100%; /* Ensure input boxes take the full width */
+        padding: 15px;
+        font-size: 16px;
+    }
+
+    button {
+        width: 100%; /* Ensure buttons take the full width */
+        padding: 15px;
+        font-size: 16px;
+    }
+
+    h2 {
+        position: absolute;
+        top: 20%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 45px;
+        text-align: center;
+    }
+}

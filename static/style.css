@@ -759,6 +759,7 @@ form button:hover {
     .open-modal-btn {
         bottom: 10%;
         left: 50%;
+        transform: translateX(-50%);
     }
 
     .fish_ai_insert {
