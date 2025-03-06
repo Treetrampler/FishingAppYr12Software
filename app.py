@@ -71,6 +71,9 @@ def is_valid(item):
 def username_is_valid(item):
     return isinstance(item,str) and 1<=len(item)<=15 and re.match(r"^[a-zA-Z0-9\s.,-_]+$", item)
 
+def password_is_valid(item):
+    return isinstance(item,str) and 6<=len(item)<=255 and re.match(r"^[a-zA-Z0-9\s.,-_!@#$%^&*]+$", item)
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
@@ -237,7 +240,7 @@ def register():
 
         password = clean(request.form['password'])
         check_password = clean(request.form['confirm_password'])
-        if not is_valid(password):
+        if not password_is_valid(password):
             flash('Invalid password, try again', 'error')
             return redirect('/register')
         elif password != check_password:
@@ -662,28 +665,41 @@ def get_logged_in_users():
         conn = sqlite3.connect('fishing_app.db')
         cursor = conn.cursor()
 
-        # Fetch timestamps from database (assuming they are stored in UTC)
-        cursor.execute('SELECT login_time, count(*) FROM user_sessions WHERE active = 1 GROUP BY login_time')
+        # Fetch login and logout times from the last day
+        cursor.execute('''
+            SELECT login_time, logout_time
+            FROM user_sessions
+            WHERE login_time >= datetime('now', '-1 day')
+        ''')
         data = cursor.fetchall()
-        print(data)
 
         # Define timezones
         utc_tz = pytz.utc
         aest_tz = pytz.timezone('Australia/Sydney')  # Handles AEST/AEDT automatically
 
-        timestamps = []
-        logged_in_users = []
+        events = []
 
         for row in data:
-            utc_time = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")  # Adjust format if needed
-            utc_time = utc_tz.localize(utc_time)  # Ensure it's treated as UTC
-            aest_time = utc_time.astimezone(aest_tz)  # Convert to AEST/AEDT
+            login_time = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")
+            login_time = utc_tz.localize(login_time).astimezone(aest_tz)
+            events.append((login_time, 1))  # Login event
 
-            timestamps.append(aest_time.strftime("%Y-%m-%d %H:%M"))  # Format properly
-            logged_in_users.append(row[1])
-            print(row[1])
+            if row[1]:  # If logout_time is not None
+                logout_time = datetime.strptime(row[1], "%Y-%m-%d %H:%M:%S")
+                logout_time = utc_tz.localize(logout_time).astimezone(aest_tz)
+                events.append((logout_time, -1))  # Logout event
 
-        #logged_in_users = [len(timestamps)]
+        # Sort events by time
+        events.sort(key=lambda x: x[0])
+
+        timestamps = []
+        logged_in_users = []
+        current_users = 0
+
+        for event in events:
+            timestamps.append(event[0].strftime("%Y-%m-%d %H:%M"))
+            current_users += event[1]
+            logged_in_users.append(current_users)
 
         return jsonify({
             'timestamps': timestamps,

@@ -35,7 +35,11 @@
                 return;
             }
 
-            new Chart(ctx, {
+            if (chart) {
+                chart.destroy(); // Destroy the previous chart instance if it exists
+            }
+
+            chart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: timestamps,
@@ -85,6 +89,5 @@
     // Initial fetch
     fetchDataAndUpdateChart();
 </script>
-
 
 {% endblock %}
