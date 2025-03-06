@@ -261,24 +261,29 @@ body {
     display: flex;
     align-items: center;
     justify-content: left;
-    border-bottom: 1px solid lightgrey;
     background-color: #EFFBFE;
     border-radius: 10px 10px 0 0;
     padding-top: 10px;
+    padding-bottom: 5px;
 }
 
 .post_footer {
     display: flex;
-    align-items: center;
+    flex-direction: column; /* Change to column to allow text to wrap */
+    align-items: flex-start; /* Align items to the start */
     justify-content: left;
-    border-top: 1px solid lightgrey;
     background-color: #EFFBFE;
     border-radius: 0 0 10px 10px;
     padding: 10px;
+    width: 100%; /* Ensure the footer takes the full width */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
 }
 
 .post_footer p {
     text-align: left;
+    margin: 0; /* Remove default margin */
+    word-wrap: break-word; /* Ensure long words break to the next line */
+    width: 90%; /* Ensure the paragraph takes the full width */
 }
 
 .post_profile_image {
@@ -590,6 +595,10 @@ table thead {
 table th, table td {
     padding: 12px 15px;
     border: 1px solid #ddd;
+    max-width: 200px; /* Set a maximum width for table cells */
+    overflow: hidden; /* Hide overflow content */
+    text-overflow: ellipsis; /* Add ellipsis for overflow text */
+    white-space: nowrap; /* Prevent text from wrapping */
 }
 
 table th {

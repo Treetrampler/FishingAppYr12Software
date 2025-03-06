@@ -428,9 +428,9 @@ def edit_profile():
         print('runnning db')
         print(session['user_id'])
         cursor.execute('UPDATE user_data SET username = ?, email = ? WHERE user_id = ?', (safe_username, safe_email, session['user_id']))
-        print('succesfully updated')
         conn.commit()
         flash('User info successfully updated!', 'success')
+        log_user_activity("edited their profile", session['username'])
     except sqlite3.IntegrityError:
         flash('A database integrity error occurred. Please try again.', 'error')
     except sqlite3.Error:
@@ -460,6 +460,7 @@ def user_edit_post():
         cursor.execute('UPDATE posts SET caption = ? WHERE post_id = ? AND user_id = ?', (safe_caption, post_id, session['user_id']))
         conn.commit()
         flash('Post updated successfully!', 'success')
+        log_user_activity("edited their post", session['username'])
     except sqlite3.IntegrityError:
         flash('A database integrity error occurred. Please try again.', 'error')
     except sqlite3.Error:
@@ -615,10 +616,14 @@ def create_post():
                             (session['user_id'], relative_image_path, safe_caption))
                 conn.commit()
                 flash('Post created successfully!', 'success')
+                log_user_activity("created a post", session['username'])
+
             except sqlite3.IntegrityError:
                 flash('A database integrity error occurred. Please try again.', 'error')
+
             except sqlite3.Error:
                 flash('A database error occurred. Please contact support.', 'error')
+
             finally:
                 conn.close()
 
@@ -716,6 +721,7 @@ def delete_post():
         cursor.execute('DELETE FROM posts WHERE post_id = ?', (post_id,))
         conn.commit()
         flash('Post deleted successfully!', 'success')
+        log_user_activity("deleted a post", session['username'])
     except sqlite3.IntegrityError:
         flash('A database integrity error occurred. Please try again.', 'error')
     except sqlite3.Error:
@@ -747,6 +753,7 @@ def edit_post():
         cursor.execute('UPDATE posts SET user_id = ?, image_path = ?, caption = ? WHERE post_id = ?', (user_id, image_src, safe_caption, post_id))
         conn.commit()
         flash('Post updated successfully!', 'success')
+        log_user_activity("edited a post", session['username'])
     except sqlite3.IntegrityError:
         flash('A database integrity error occurred. Please try again.', 'error')
     except sqlite3.Error:
@@ -850,6 +857,7 @@ def edit_user():
         cursor.execute('UPDATE user_data SET username = ?, admin = ? WHERE user_id = ?', (safe_username, admin, user_id))
         conn.commit()
         flash('User updated successfully!', 'success')
+        log_user_activity("edited user data", session['username'])
     except sqlite3.IntegrityError:
         flash('A database integrity error occurred. Please try again.', 'error')
     except sqlite3.Error:
@@ -873,6 +881,7 @@ def delete_user():
         cursor.execute('DELETE FROM user_data WHERE user_id = ?', (user_id,))
         conn.commit()
         flash('User deleted successfully!', 'success')
+        log_user_activity("deleted user", session['username'])
     except sqlite3.IntegrityError:
         flash('A database integrity error occurred. Please try again.', 'error')
     except sqlite3.Error:
