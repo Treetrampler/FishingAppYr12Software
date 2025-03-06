@@ -68,6 +68,9 @@ def internal_error(error):
 def is_valid(item):
     return isinstance(item,str) and 1<=len(item)<=255 and re.match(r"^[a-zA-Z0-9\s.,-_]+$", item)
 
+def username_is_valid(item):
+    return isinstance(item,str) and 1<=len(item)<=15 and re.match(r"^[a-zA-Z0-9\s.,-_]+$", item)
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
@@ -225,8 +228,11 @@ def login():
 def register():
     if request.method == 'POST':
         username = clean(request.form['username'])
-        if not is_valid(username):
-            flash('Invalid username, try again', 'error')
+        if not username_is_valid(username):
+            if len(username) > 15:
+                flash('Username too long, try again', 'error')
+            else:
+                flash('Invalid characters in username, try again', 'error')
             return redirect('/register')
 
         password = clean(request.form['password'])
@@ -414,8 +420,11 @@ def edit_profile():
 
     username = clean(request.form.get('username'))
 
-    if not is_valid(username):
-        flash('Invalid username, try again', 'error')
+    if not username_is_valid(username):
+        if len(username) > 15:
+            flash('Username too long, try again', 'error')
+        else:
+            flash('Invalid characters in username, try again', 'error')
         return redirect('/profile')
 
     email = clean(request.form.get('email'))
@@ -846,8 +855,11 @@ def edit_user():
     username = clean(request.form.get('username'))
     admin = request.form.get('admin')
 
-    if not is_valid(username):
-        flash('Invalid username, try again', 'error')
+    if not username_is_valid(username):
+        if len(username) > 15:
+            flash('Username too long, try again', 'error')
+        else:
+            flash('Invalid characters in username, try again', 'error')
         return redirect('/user_management')
 
     try:
