@@ -1,5 +1,34 @@
 {% extends 'adminview_layout.html' %}
 
 {% block body %}
+<h1>Manage Fish-Dex</h1>
+
+<h3>Wipe User's FishDex Data</h3>
+<form action="{{ url_for('wipe_fishdex') }}" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" placeholder="Enter username" required>
+    <button type="submit">Wipe FishDex Data</button>
+</form>
+
+<h3>FishDex Leaderboard</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Rank</th>
+            <th>Username</th>
+            <th>Fish Count</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in leaderboard %}
+        <tr>
+            <td  data-label="Rank">{{ loop.index }}</td>
+            <td  data-label="Username">{{ user.username }}</td>
+            <td  data-label="Fish Count">{{ user.fish_count }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
 {% endblock %}

@@ -3,6 +3,7 @@ import re
 import os
 import pyotp
 import qrcode
+import atexit
 from flask import Flask, render_template, request, redirect, session, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -13,11 +14,12 @@ from datetime import timedelta, datetime
 import pytz
 from bleach import clean
 from flask_wtf.csrf import CSRFProtect
+from apscheduler.schedulers.background import BackgroundScheduler
 
 app = Flask(__name__)
 csrf = CSRFProtect(app)
 
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=1)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
 
 app.secret_key = 'd3b07384d113edec49eaa6238ad5ff00c86c392bd62329c75b90dbd174ca03eb'
 UPLOAD_FOLDER = 'static/uploads'
@@ -44,15 +46,6 @@ def session_log():
 
     if 'user_id' in session:
         session.modified = True  # Refresh session expiration
-        print('1')
-    else:
-        username = session.get('username')
-        print(username)
-        if username:
-            log_user_activity("session expired", session['username'])
-            session.clear()
-            print('logged session')
-        print('2')
 
 def log_user_activity(action, username):
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -61,19 +54,22 @@ def log_user_activity(action, username):
 
 @app.errorhandler(400)
 def bad_request_error(error):
-    return render_template('error.html', message="Bad Request: Please check your input."), 400
+    return render_template('error.html', message=f"Bad Request: {str(error)}"), 400
 @app.errorhandler(403)
 def forbidden_error(error):
-    return render_template('error.html', message="Forbidden: You don’t have permission to access this."), 403
+    return render_template('error.html', message=f"Forbidden: {str(error)}"), 403
 @app.errorhandler(404)
 def not_found_error(error):
-    return render_template('error.html', message="Page Not Found: The resource you requested does not exist."), 404
+    return render_template('error.html', message=f"Page Not Found: {str(error)}"), 404
 @app.errorhandler(500)
 def internal_error(error):
     return render_template('error.html', message=f"Internal Server Error: {str(error)}"), 500
 
 def is_valid(item):
     return isinstance(item,str) and 1<=len(item)<=255 and re.match(r"^[a-zA-Z0-9\s.,-_]+$", item)
+
+def username_is_valid(item):
+    return isinstance(item,str) and 1<=len(item)<=15 and re.match(r"^[a-zA-Z0-9\s.,-_]+$", item)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
@@ -123,14 +119,47 @@ def init_db():
 
 init_db() #calls the function to init the db
 
+def end_old_sessions():
+    print('running')
+    try:
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE user_sessions
+            SET logout_time = CURRENT_TIMESTAMP, active = 0
+            WHERE active = 1 AND login_time <= datetime('now', '-12 hours')
+        ''')
+        conn.commit()
+        # Log the session end activity
+        cursor.execute('''
+            SELECT user_id FROM user_sessions
+            WHERE active = 0 AND logout_time = CURRENT_TIMESTAMP
+        ''')
+        ended_sessions = cursor.fetchall()
+        for session in ended_sessions:
+            cursor.execute('SELECT username FROM user_data WHERE user_id = ?', (session[0],))
+            username = cursor.fetchone()[0]
+            log_user_activity("session expired", username)
+    except sqlite3.Error as e:
+        print(f"Database error occurred: {str(e)}")
+    finally:
+        conn.close()
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(func=end_old_sessions, trigger="interval", hours=1)
+scheduler.start()
+
+atexit.register(lambda: scheduler.shutdown())
+
 @limiter.exempt
 @app.route('/') #the main page, creates the home page
 def index():
     try:
         conn = sqlite3.connect('fishing_app.db')
         cursor = conn.cursor()
-        cursor.execute('SELECT posts.image_path, posts.caption, user_data.username FROM posts JOIN user_data ON posts.user_id = user_data.user_id ORDER BY posts.post_id DESC')
+        cursor.execute('SELECT posts.image_path, posts.caption, user_data.username, user_data.profile_image_path FROM posts JOIN user_data ON posts.user_id = user_data.user_id ORDER BY posts.post_id DESC LIMIT 20')
         posts = cursor.fetchall()
+        print(posts[1][3])
         admin = 0
 
         if 'user_id' in session:
@@ -146,6 +175,7 @@ def index():
         conn.close()
 
     if admin == 1:
+        session['admin'] = True
         return render_template('admin_home.html')
     else:
         return render_template('index.html', posts=posts)
@@ -198,8 +228,11 @@ def login():
 def register():
     if request.method == 'POST':
         username = clean(request.form['username'])
-        if not is_valid(username):
-            flash('Invalid username, try again', 'error')
+        if not username_is_valid(username):
+            if len(username) > 15:
+                flash('Username too long, try again', 'error')
+            else:
+                flash('Invalid characters in username, try again', 'error')
             return redirect('/register')
 
         password = clean(request.form['password'])
@@ -291,6 +324,7 @@ def setup_mfa():
 def verify_mfa():
     if 'pending_user' not in session:
         return redirect('/login')
+    
     user_id = session['pending_user']
     if request.method == 'POST':
         # Retrieves the code from the text box
@@ -316,11 +350,7 @@ def verify_mfa():
             cursor = conn.cursor()
             cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user[0],))
             conn.commit()
-
-            if user[4] == 1:
-                return redirect('/admin_home')
-            else:
-                return redirect('/')
+            return redirect('/')
         flash("Invalid 2FA code. Try again.", "error")
     return render_template("verify_mfa.html")
 
@@ -341,7 +371,7 @@ def profile():
         user_data = cursor.fetchone()
 
         # Fetch user posts
-        cursor.execute('SELECT posts.post_id, posts.image_path, posts.caption, user_data.username FROM posts JOIN user_data ON posts.user_id = user_data.user_id WHERE posts.user_id = ?', (session['user_id'],))
+        cursor.execute('SELECT posts.post_id, posts.image_path, posts.caption, user_data.username, user_data.profile_image_path FROM posts JOIN user_data ON posts.user_id = user_data.user_id WHERE posts.user_id = ?', (session['user_id'],))
         user_posts = cursor.fetchall()
 
     except sqlite3.IntegrityError:
@@ -355,6 +385,10 @@ def profile():
 
 @app.route('/upload_profile_image', methods=['POST'])
 def upload_profile_image():
+    if 'user_id' not in session:
+        flash('Please login to access this method.', 'error')
+        return redirect('/login')
+
     if 'profile_image' not in request.files:
         flash('No file part', 'error')
         return redirect('/profile')
@@ -386,8 +420,11 @@ def edit_profile():
 
     username = clean(request.form.get('username'))
 
-    if not is_valid(username):
-        flash('Invalid username, try again', 'error')
+    if not username_is_valid(username):
+        if len(username) > 15:
+            flash('Username too long, try again', 'error')
+        else:
+            flash('Invalid characters in username, try again', 'error')
         return redirect('/profile')
 
     email = clean(request.form.get('email'))
@@ -400,9 +437,9 @@ def edit_profile():
         print('runnning db')
         print(session['user_id'])
         cursor.execute('UPDATE user_data SET username = ?, email = ? WHERE user_id = ?', (safe_username, safe_email, session['user_id']))
-        print('succesfully updated')
         conn.commit()
         flash('User info successfully updated!', 'success')
+        log_user_activity("edited their profile", session['username'])
     except sqlite3.IntegrityError:
         flash('A database integrity error occurred. Please try again.', 'error')
     except sqlite3.Error:
@@ -415,7 +452,7 @@ def edit_profile():
 @app.route('/user_edit_post', methods=['POST'])
 def user_edit_post():
     if 'user_id' not in session:
-        flash('Please login to access this page.', 'error')
+        flash('Please login to access this method.', 'error')
         return redirect('/login')
 
     post_id = request.form.get('post_id')
@@ -432,6 +469,7 @@ def user_edit_post():
         cursor.execute('UPDATE posts SET caption = ? WHERE post_id = ? AND user_id = ?', (safe_caption, post_id, session['user_id']))
         conn.commit()
         flash('Post updated successfully!', 'success')
+        log_user_activity("edited their post", session['username'])
     except sqlite3.IntegrityError:
         flash('A database integrity error occurred. Please try again.', 'error')
     except sqlite3.Error:
@@ -444,7 +482,7 @@ def user_edit_post():
 @app.route('/user_delete_post', methods=['POST'])
 def user_delete_post():
     if 'user_id' not in session:
-        flash('Please login to access this page.', 'error')
+        flash('Please login to access this method.', 'error')
         return redirect('/login')
 
     post_id = request.form.get('post_id')
@@ -512,7 +550,7 @@ def fish_dex():
 @app.route('/upload_fish_image', methods=['POST'])
 def upload_fish_image():
     if 'user_id' not in session:
-        flash('Please login to access this page.', 'error')
+        flash('Please login to access this method.', 'error')
         return redirect('/')
     fish_id = request.form.get('fish_id')
     image = request.files['image']
@@ -559,7 +597,7 @@ def upload_fish_image():
 @app.route('/create_post', methods=['POST'])
 def create_post():
     if 'user_id' not in session:
-        flash('Please login to access this page.', 'error')
+        flash('Please login to access this method.', 'error')
         return redirect('/')
 
     caption = clean(request.form.get('caption'))
@@ -587,10 +625,14 @@ def create_post():
                             (session['user_id'], relative_image_path, safe_caption))
                 conn.commit()
                 flash('Post created successfully!', 'success')
+                log_user_activity("created a post", session['username'])
+
             except sqlite3.IntegrityError:
                 flash('A database integrity error occurred. Please try again.', 'error')
+
             except sqlite3.Error:
                 flash('A database error occurred. Please contact support.', 'error')
+
             finally:
                 conn.close()
 
@@ -605,13 +647,17 @@ def create_post():
 
 @app.route('/admin_home')
 def admin_home():
-    if 'user_id' not in session:
+    if 'admin' not in session:
         flash('Please login to access this page.', 'error')
         return redirect('/')
     return render_template('admin_home.html')
 
 @app.route('/get_logged_in_users', methods=['GET'])
 def get_logged_in_users():
+    if 'admin' not in session:
+        flash('Please login to access this method.', 'error')
+        return redirect('/')
+
     try:
         conn = sqlite3.connect('fishing_app.db')
         cursor = conn.cursor()
@@ -651,6 +697,10 @@ def get_logged_in_users():
 
 @app.route('/post_management', methods=['GET'])
 def post_management():
+    if 'admin' not in session:
+        flash('Please login to access this page.', 'error')
+        return redirect('/')
+    
     post_data = []
     try:
         conn = sqlite3.connect('fishing_app.db')
@@ -680,6 +730,7 @@ def delete_post():
         cursor.execute('DELETE FROM posts WHERE post_id = ?', (post_id,))
         conn.commit()
         flash('Post deleted successfully!', 'success')
+        log_user_activity("deleted a post", session['username'])
     except sqlite3.IntegrityError:
         flash('A database integrity error occurred. Please try again.', 'error')
     except sqlite3.Error:
@@ -711,6 +762,7 @@ def edit_post():
         cursor.execute('UPDATE posts SET user_id = ?, image_path = ?, caption = ? WHERE post_id = ?', (user_id, image_src, safe_caption, post_id))
         conn.commit()
         flash('Post updated successfully!', 'success')
+        log_user_activity("edited a post", session['username'])
     except sqlite3.IntegrityError:
         flash('A database integrity error occurred. Please try again.', 'error')
     except sqlite3.Error:
@@ -722,10 +774,63 @@ def edit_post():
 
 @app.route('/fishdex_management', methods=['GET'])
 def fishdex_management():
-    return render_template('fishdex_management.html')
+    if 'admin' not in session:
+        flash('Please login to access this page.', 'error')
+        return redirect('/')
+    
+    leaderboard = []
+    try:
+        # Fetch leaderboard data
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT user_data.username, COUNT(user_fishdata.fish_id) AS fish_count
+            FROM user_data
+            LEFT JOIN user_fishdata ON user_data.user_id = user_fishdata.user_id
+            GROUP BY user_data.user_id
+            ORDER BY fish_count DESC
+            LIMIT 10
+        ''')
+        leaderboard = cursor.fetchall()
+        leaderboard = [{'username': row[0], 'fish_count': row[1]} for row in leaderboard]
+    except sqlite3.Error as e:
+        flash(f'A database error occurred: {str(e)}', 'error')
+    finally:
+        conn.close()
+    
+    return render_template('fishdex_management.html', fish_list=FISH_LIST, leaderboard=leaderboard)
+
+@app.route('/wipe_fishdex', methods=['POST'])
+def wipe_fishdex():
+    if 'admin' not in session:
+        flash('Please login to access this method.', 'error')
+        return redirect('/')
+
+    username = request.form['username']
+    try:
+        conn = sqlite3.connect('fishing_app.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT user_id FROM user_data WHERE username = ?', (username,))
+        user = cursor.fetchone()
+        if user:
+            user_id = user[0]
+            cursor.execute('DELETE FROM user_fishdata WHERE user_id = ?', (user_id,))
+            conn.commit()
+            flash('FishDex data wiped successfully!', 'success')
+        else:
+            flash('User not found.', 'error')
+    except sqlite3.Error as e:
+        flash(f'A database error occurred: {str(e)}', 'error')
+    finally:
+        conn.close()
+    return redirect('/fishdex_management')
 
 @app.route('/user_management', methods=['GET'])
 def user_management():
+    if 'admin' not in session:
+        flash('Please login to access this page.', 'error')
+        return redirect('/')
+    
     user_data = []
     try:
         conn = sqlite3.connect('fishing_app.db')
@@ -742,14 +847,14 @@ def user_management():
 
 @app.route('/edit_user', methods=['POST'])
 def edit_user():
-    if 'user_id' not in session:
-        flash('Please login to access this page.', 'error')
+    if 'admin' not in session:
+        flash('Please login to access this method.', 'error')
         return redirect('/login')
 
     user_id = request.form.get('user_id')
     username = clean(request.form.get('username'))
     admin = request.form.get('admin')
-
+    
     if not is_valid(username):
         flash('Invalid username, try again', 'error')
         return redirect('/user_management')
@@ -761,6 +866,7 @@ def edit_user():
         cursor.execute('UPDATE user_data SET username = ?, admin = ? WHERE user_id = ?', (safe_username, admin, user_id))
         conn.commit()
         flash('User updated successfully!', 'success')
+        log_user_activity("edited user data", session['username'])
     except sqlite3.IntegrityError:
         flash('A database integrity error occurred. Please try again.', 'error')
     except sqlite3.Error:
@@ -772,8 +878,8 @@ def edit_user():
 
 @app.route('/delete_user', methods=['POST'])
 def delete_user():
-    if 'user_id' not in session:
-        flash('Please login to access this page.', 'error')
+    if 'admin' not in session:
+        flash('Please login to access this method.', 'error')
         return redirect('/login')
 
     user_id = request.form.get('user_id')
@@ -784,6 +890,7 @@ def delete_user():
         cursor.execute('DELETE FROM user_data WHERE user_id = ?', (user_id,))
         conn.commit()
         flash('User deleted successfully!', 'success')
+        log_user_activity("deleted user", session['username'])
     except sqlite3.IntegrityError:
         flash('A database integrity error occurred. Please try again.', 'error')
     except sqlite3.Error:
