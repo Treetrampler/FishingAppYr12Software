@@ -16,11 +16,11 @@
     <tbody>
         {% for post in post_data %}
             <tr>
-                <td>{{ post[0] }}</td>
-                <td>{{ post[1] }}</td>
-                <td>{{ post[2] }}</td>
-                <td>{{ post[3] }}</td>
-                <td>
+                <td data-label="Post ID">{{ post[0] }}</td>
+                <td data-label="User ID">{{ post[1] }}</td>
+                <td data-label="Image Source">{{ post[2] }}</td>
+                <td data-label="Caption">{{ post[3] }}</td>
+                <td data-label="Actions">
                     <a href="javascript:void(0);" onclick="openEditModal('{{ post[0] }}', '{{ post[1] }}', '{{ post[2] }}', '{{ post[3] }}')">Edit</a> |
                     <a href="javascript:void(0);" onclick="openDeleteModal('{{ post[0] }}')">Delete</a>
                 </td>

@@ -15,10 +15,10 @@
     <tbody>
         {% for user in user_data %}
             <tr>
-                <td>{{ user[0] }}</td>
-                <td>{{ user[1] }}</td>
-                <td>{{ 'Yes' if user[4] == 1 else 'No' }}</td>
-                <td>
+                <td data-label="User ID">{{ user[0] }}</td>
+                <td data-label="Username">{{ user[1] }}</td>
+                <td data-label="Admin">{{ 'Yes' if user[4] == 1 else 'No' }}</td>
+                <td data-label="Actions">
                     <a href="javascript:void(0);" onclick="openEditModal('{{ user[0] }}', '{{ user[1] }}', '{{ user[4] }}')">Edit</a> |
                     <a href="javascript:void(0);" onclick="openDeleteModal('{{ user[0] }}')">Delete</a>
                 </td>

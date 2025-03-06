@@ -220,7 +220,7 @@ body {
 .post {
     position: relative;
     background-color: #fff;
-    padding: 20px 0;
+    padding: 0;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     margin-top: 20px;
@@ -229,10 +229,10 @@ body {
 
 .post img {
     max-width: 100%;
-    margin-bottom: 10px;
     max-height: 300px;
     height: auto;
     object-fit: contain;
+    margin-top: 5px;
 }
 
 .post p {
@@ -253,8 +253,45 @@ body {
 .post h4 {
     text-align: center;
     vertical-align: center;
-    margin-top: 0;
-    font-size: 25px;
+    font-size: 22px;
+    margin: 0;
+}
+
+.post_header {
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    background-color: #EFFBFE;
+    border-radius: 10px 10px 0 0;
+    padding-top: 10px;
+    padding-bottom: 5px;
+}
+
+.post_footer {
+    display: flex;
+    flex-direction: column; /* Change to column to allow text to wrap */
+    align-items: flex-start; /* Align items to the start */
+    justify-content: left;
+    background-color: #EFFBFE;
+    border-radius: 0 0 10px 10px;
+    padding: 10px;
+    width: 100%; /* Ensure the footer takes the full width */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+.post_footer p {
+    text-align: left;
+    margin: 0; /* Remove default margin */
+    word-wrap: break-word; /* Ensure long words break to the next line */
+    width: 90%; /* Ensure the paragraph takes the full width */
+}
+
+.post_profile_image {
+    width: 40px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 10px;
+    margin-left: 10px;
 }
 
 /* CSS STYLING FOR THE FISH IDENTIFIER AI */
@@ -473,7 +510,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%; /* Ensure the form takes the full width of the modal content */
+    width: 93%; /* Ensure the form takes the full width of the modal content */
 }
 
 .modal-content input[type="text"],
@@ -558,6 +595,10 @@ table thead {
 table th, table td {
     padding: 12px 15px;
     border: 1px solid #ddd;
+    max-width: 200px; /* Set a maximum width for table cells */
+    overflow: hidden; /* Hide overflow content */
+    text-overflow: ellipsis; /* Add ellipsis for overflow text */
+    white-space: nowrap; /* Prevent text from wrapping */
 }
 
 table th {
@@ -584,6 +625,42 @@ table a {
 
 table a:hover {
     text-decoration: underline;
+}
+
+/* Styling for the fishdex management form */
+form {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+form input[type="text"] {
+    width: 90%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+form button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+form button:hover {
+    background-color: #0056b3;
 }
 
 /* CSS STYLING FOR THE USER NUMBER CHART */
@@ -626,9 +703,11 @@ table a:hover {
         border: none;
         margin-top: none;
         z-index: 10000;
+        display: flex;
+        justify-content: space-evenly;
     }
 
-    #sidebar h1, a {
+    #sidebar h1, #sidebar a {
         visibility: hidden;
         position: fixed;
         left: -9000px;
@@ -699,5 +778,43 @@ table a:hover {
     .hidden_info {
         position: relative;
         left: 0;
+    }
+
+    /* Responsive styling for admin tables */
+    table {
+        width: 100%; /* Full width on small screens */
+        font-size: 14px; /* Smaller font size for better readability */
+    }
+
+    table th, table td {
+        padding: 8px; /* Smaller padding for better fit */
+    }
+
+    table thead {
+        display: none; /* Hide table headers on small screens */
+    }
+
+    table tr {
+        display: block; /* Display rows as blocks */
+        margin-bottom: 10px; /* Add space between rows */
+    }
+
+    table td {
+        display: flex; /* Display cells as flex items */
+        justify-content: space-between; /* Space out the content */
+        padding: 10px; /* Add padding for better readability */
+        border: 1px solid #ddd; /* Add border for better separation */
+        position: relative; /* Ensure the pseudo-element is positioned relative to the td */
+        padding-left: 50%; /* Add padding to the left to make space for the pseudo-element */
+    }
+
+    table td::before {
+        content: attr(data-label); /* Use data-label attribute for cell labels */
+        position: absolute; /* Position the pseudo-element absolutely */
+        left: 10px; /* Position it to the left */
+        width: 45%; /* Set a fixed width */
+        white-space: nowrap; /* Prevent text from wrapping */
+        font-weight: bold; /* Bold labels */
+        text-transform: uppercase; /* Uppercase labels */
     }
 }

@@ -16,19 +16,28 @@
             </div>
         </div>
         <h3>--- Posts <span class="hidden_info">- Tap to Edit </span>---</h3>
-        <div class="posts">
-            {% for post in user_posts %}
-                <div class="post">
-                    <div class="post_overlay">
-                        <button class="edit_post_btn" onclick="openEditPostModal('{{ post[0] }}', '{{ post[2] }}')">Edit</button>
-                        <button class="delete_post_btn" onclick="openDeletePostModal('{{ post[0] }}')">Delete</button>
-                    </div>
+    </div>
+    <div class="posts">
+        {% for post in user_posts %}
+            <div class="post">
+                <div class="post_overlay">
+                    <button class="edit_post_btn" onclick="openEditPostModal('{{ post[0] }}', '{{ post[2] }}')">Edit</button>
+                    <button class="delete_post_btn" onclick="openDeletePostModal('{{ post[0] }}')">Delete</button>
+                </div>
+                <div class="post_header">
+                    {% if post[4] %}
+                        <img src="{{ url_for('static', filename=post[4]) }}" alt="Profile Image" class="post_profile_image">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='/images/blank_profile_pic.png') }}" alt="Profile Image" class="post_profile_image">
+                    {% endif %}
                     <h4>{{ post[3] }}</h4>
-                    <img src="{{ url_for('static', filename=post[1]) }}" alt="Post Image">
+                </div>
+                <img src="{{ url_for('static', filename=post[1]) }}" alt="Post Image">
+                <div class="post_footer">
                     <p>{{ post[2] }}</p>
                 </div>
-            {% endfor %}
-        </div>
+            </div>
+        {% endfor %}
     </div>
 
     <!-- Profile Image Modal -->
