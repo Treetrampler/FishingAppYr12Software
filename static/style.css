@@ -618,14 +618,18 @@ body {
     background-color: #0056b3;
 }
 
+/* CSS STYLING FOR THE USER NUMBER CHART */
+
 #chart-container {
     width: 100%;
-    min-width: 400px;
-    max-width: 800px;
-    height: 400px;
+    height: 250px; /* Fixed height */
     margin-top: 20px;
     padding: 10px;
-    background: #fff;
+    position: relative; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f9f9f9; /* Light background for visibility */
     border: 1px solid #ccc;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -719,30 +723,6 @@ form button {
 
 form button:hover {
     background-color: #0056b3;
-}
-
-/* CSS STYLING FOR THE USER NUMBER CHART */
-
-#chart-container {
-    width: 30%; /* Adjust width as needed */
-    max-width: 400px; /* Prevents excessive growth */
-    height: 250px; /* Fixed height */
-    margin-top: 20px; /* Space below "Admin Dashboard" heading */
-    padding: 10px;
-    position: relative; /* Ensures it stays inside #content */
-    left: 0; /* Align to the left inside #content */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #f9f9f9; /* Light background for visibility */
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-#loggedInUsersChart {
-    width: 100%;
-    height: 100%;
 }
 
 /* CSS STYLING FOR RESPONSIVE STUFF */
@@ -875,5 +855,11 @@ form button:hover {
         white-space: nowrap; /* Prevent text from wrapping */
         font-weight: bold; /* Bold labels */
         text-transform: uppercase; /* Uppercase labels */
+    }
+
+    .admin-buttons {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        margin-bottom: 0;
     }
 }
