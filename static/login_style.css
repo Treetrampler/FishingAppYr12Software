@@ -52,13 +52,45 @@ body {
     object-fit: contain; /* Ensure the image fits within the box without expanding */
 }
 
+/* Styling for input containers */
+.input-container {
+    position: relative;
+    width: 100%;
+}
+
+/* Styling for the toggle password icon */
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 40%;
+    cursor: pointer;
+    font-size: 18px;
+    color: white;
+}
+
+.toggle-password:hover {
+    color: lightgrey;
+}
+
+/* Styling for the MFA boxes */
 
 .mfa_checkbox {
     color: white;
+    display: flex;
+    align-items: center;
+    margin-bottom: -15px;
 }
 
 .mfa_checkbox input[type="checkbox"] {
     margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.mfa_checkbox label {
+    margin-right: 80%;
+    margin-top: 5px;
+    white-space: nowrap;
+    font-size: 15px;
 }
 
 @keyframes shrink1 {
@@ -169,7 +201,7 @@ form {
 input {
     padding: 10px;
     margin-top: 15px;
-    border: none;
+    width: 100%;
     border-radius: 10px;
     background: transparent;
     border: 1px solid #fff;
