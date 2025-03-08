@@ -68,6 +68,15 @@ body {
     color: white;
 }
 
+.toggle_password_login {
+    position: absolute;
+    right: 30px;
+    top: 40%;
+    cursor: pointer;
+    font-size: 18px;
+    color: white;
+}
+
 .toggle-password:hover {
     color: lightgrey;
 }
