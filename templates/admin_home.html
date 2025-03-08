@@ -4,10 +4,24 @@
 
 <h1>Admin Dashboard</h1>
 
-<!-- Canvas element for the line chart -->
-<div id="chart-container">
-    <canvas id="loggedInUsersChart"></canvas>
+<div id="admin_home_container">
+    <!-- Navigation Buttons -->
+    <div class="admin-buttons">
+        <a href="{{ url_for('user_management') }}" class="admin-button">User Management</a>
+        <a href="{{ url_for('post_management') }}" class="admin-button">Post Management</a>
+        <a href="{{ url_for('fishdex_management') }}" class="admin-button">Dex Management</a>
+        <a href="{{ url_for('download_log') }}" class="admin-button">Download Log</a>
+    </div>
+
+    <!-- Canvas element for the line chart -->
+    <div id="chart-container">
+        <canvas id="loggedInUsersChart"></canvas>
+    </div>
+    
 </div>
+
+
+
 
 <!-- Include Chart.js and time adapter -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

@@ -4,7 +4,7 @@ import os
 import pyotp
 import qrcode
 import atexit
-from flask import Flask, render_template, request, redirect, session, flash, jsonify
+from flask import Flask, render_template, request, redirect, session, flash, jsonify, send_file
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from markupsafe import escape
@@ -654,6 +654,19 @@ def admin_home():
         flash('Please login to access this page.', 'error')
         return redirect('/')
     return render_template('admin_home.html')
+
+@app.route('/download_log')
+def download_log():
+    if 'admin' not in session:
+        flash('Please login to access this page.', 'error')
+        return redirect('/')
+
+    log_file_path = 'user_activity.log'
+    try:
+        return send_file(log_file_path, as_attachment=True)
+    except Exception as e:
+        flash(f'Error downloading log file: {str(e)}', 'error')
+        return redirect('/admin_home')
 
 @app.route('/get_logged_in_users', methods=['GET'])
 def get_logged_in_users():
