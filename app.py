@@ -4,6 +4,7 @@ import os
 import pyotp
 import qrcode
 import atexit
+import threading
 from flask import Flask, render_template, request, redirect, session, flash, jsonify, send_file
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -15,6 +16,7 @@ import pytz
 from bleach import clean
 from flask_wtf.csrf import CSRFProtect
 from apscheduler.schedulers.background import BackgroundScheduler
+from urllib.parse import urlparse, urljoin
 
 app = Flask(__name__)
 csrf = CSRFProtect(app)
@@ -27,6 +29,8 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 LOG_FILE = "user_activity.log"
 FISH_LIST = ['Bass', 'Catfish', 'Crappie', 'Perch', 'Pike', 'Australian Salmon', 'Trout', 'Walleye', 'Bream', 'Mulloway', 'Mullet', 'Flathead', 'Whiting', 'Tailor']
+ALLOWED_REDIRECTS = {'/', '/login', '/register', '/setup_mfa', '/verify_mfa', '/logout', '/identifier', '/fish_dex', '/profile', '/upload_profile_image', '/edit_profile', '/user_edit_post', '/user_delete_post', '/upload_fish_image', '/create_post', '/admin_home', '/download_log', '/get_logged_in_users', '/post_management', '/delete_post', '/edit_post', '/wipe_fishdex', '/user_management', '/edit_user', '/delete_user', '/fishdex_management', '/error'}
+db_lock = threading.Lock()
 limiter = Limiter(get_remote_address, app=app, default_limits=["10 per minute"])
 
 app.config.update(
@@ -47,10 +51,22 @@ def session_log():
     if 'user_id' in session:
         session.modified = True  # Refresh session expiration
 
+@app.before_request
+def check_unauthorized_redirects():
+    target = request.args.get('next')
+    if target and not is_safe_redirect(target):
+        return redirect('/')
+
 def log_user_activity(action, username):
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     with open("user_activity.log", "a") as log_file:
         log_file.write(f"{timestamp} - {username} {action}\n")
+
+def is_safe_redirect(target):
+    from urllib.parse import urlparse, urljoin
+    ref_url = urlparse(request.host_url)
+    test_url = urlparse(urljoin(request.host_url, target))
+    return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc and target in ALLOWED_REDIRECTS
 
 @app.errorhandler(400)
 def bad_request_error(error):
