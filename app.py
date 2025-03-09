@@ -140,29 +140,30 @@ init_db() #calls the function to init the db
 
 def end_old_sessions():
     print('running')
-    try:
-        conn = sqlite3.connect('fishing_app.db')
-        cursor = conn.cursor()
-        cursor.execute('''
-            UPDATE user_sessions
-            SET logout_time = CURRENT_TIMESTAMP, active = 0
-            WHERE active = 1 AND login_time <= datetime('now', '-12 hours')
-        ''')
-        conn.commit()
-        # Log the session end activity
-        cursor.execute('''
-            SELECT user_id FROM user_sessions
-            WHERE active = 0 AND logout_time = CURRENT_TIMESTAMP
-        ''')
-        ended_sessions = cursor.fetchall()
-        for session in ended_sessions:
-            cursor.execute('SELECT username FROM user_data WHERE user_id = ?', (session[0],))
-            username = cursor.fetchone()[0]
-            log_user_activity("session expired", username)
-    except sqlite3.Error as e:
-        print(f"Database error occurred: {str(e)}")
-    finally:
-        conn.close()
+    with db_lock:
+        try:
+            conn = sqlite3.connect('fishing_app.db')
+            cursor = conn.cursor()
+            cursor.execute('''
+                UPDATE user_sessions
+                SET logout_time = CURRENT_TIMESTAMP, active = 0
+                WHERE active = 1 AND login_time <= datetime('now', '-12 hours')
+            ''')
+            conn.commit()
+            # Log the session end activity
+            cursor.execute('''
+                SELECT user_id FROM user_sessions
+                WHERE active = 0 AND logout_time = CURRENT_TIMESTAMP
+            ''')
+            ended_sessions = cursor.fetchall()
+            for session in ended_sessions:
+                cursor.execute('SELECT username FROM user_data WHERE user_id = ?', (session[0],))
+                username = cursor.fetchone()[0]
+                log_user_activity("session expired", username)
+        except sqlite3.Error as e:
+            print(f"Database error occurred: {str(e)}")
+        finally:
+            conn.close()
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=end_old_sessions, trigger="interval", hours=1)
@@ -173,25 +174,26 @@ atexit.register(lambda: scheduler.shutdown())
 @limiter.exempt
 @app.route('/') #the main page, creates the home page
 def index():
-    try:
-        conn = sqlite3.connect('fishing_app.db')
-        cursor = conn.cursor()
-        cursor.execute('SELECT posts.image_path, posts.caption, user_data.username, user_data.profile_image_path FROM posts JOIN user_data ON posts.user_id = user_data.user_id ORDER BY posts.post_id DESC LIMIT 20')
-        posts = cursor.fetchall()
-        print(posts[1][3])
-        admin = 0
+    with db_lock:
+        try:
+            conn = sqlite3.connect('fishing_app.db')
+            cursor = conn.cursor()
+            cursor.execute('SELECT posts.image_path, posts.caption, user_data.username, user_data.profile_image_path FROM posts JOIN user_data ON posts.user_id = user_data.user_id ORDER BY posts.post_id DESC LIMIT 20')
+            posts = cursor.fetchall()
+            print(posts[1][3])
+            admin = 0
 
-        if 'user_id' in session:
-            cursor.execute('SELECT admin FROM user_data WHERE user_id = ?', (session['user_id'],))
-            result = cursor.fetchone()
-            admin = result[0] if result else 0  # Extract admin value safely
+            if 'user_id' in session:
+                cursor.execute('SELECT admin FROM user_data WHERE user_id = ?', (session['user_id'],))
+                result = cursor.fetchone()
+                admin = result[0] if result else 0  # Extract admin value safely
 
-    except sqlite3.IntegrityError:
-        flash('A database integrity error occurred. Please try again.', 'error')
-    except sqlite3.Error:
-        flash('A database error occurred. Please contact support.', 'error')
-    finally:
-        conn.close()
+        except sqlite3.IntegrityError:
+            flash('A database integrity error occurred. Please try again.', 'error')
+        except sqlite3.Error:
+            flash('A database error occurred. Please contact support.', 'error')
+        finally:
+            conn.close()
 
     if admin == 1:
         session['admin'] = True
@@ -212,33 +214,34 @@ def login():
         if not is_valid(password):
             flash('Invalid password, try again', 'error')
             return redirect('/login')
-        try:
-            conn = sqlite3.connect('fishing_app.db')
-            cursor = conn.cursor()
-            cursor.execute('SELECT * FROM user_data WHERE username = ?', (username,))
-            user = cursor.fetchone()
-            if user and check_password_hash(user[2], password):
-                if user[6]:
-                    session['pending_user'] = user[0]
-                    return redirect('/verify_mfa')
+        with db_lock:
+            try:
+                conn = sqlite3.connect('fishing_app.db')
+                cursor = conn.cursor()
+                cursor.execute('SELECT * FROM user_data WHERE username = ?', (username,))
+                user = cursor.fetchone()
+                if user and check_password_hash(user[2], password):
+                    if user[6]:
+                        session['pending_user'] = user[0]
+                        return redirect('/verify_mfa')
+                    else:
+                        session['user_id'] = user[0]
+                        session['username'] = user[1]
+                        log_user_activity("logged in", username)
+                        conn = sqlite3.connect('fishing_app.db')
+                        cursor = conn.cursor()
+                        cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user[0],))
+                        conn.commit()
+                        flash('Login successful!', 'success')
+                        return redirect('/')
                 else:
-                    session['user_id'] = user[0]
-                    session['username'] = user[1]
-                    log_user_activity("logged in", username)
-                    conn = sqlite3.connect('fishing_app.db')
-                    cursor = conn.cursor()
-                    cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user[0],))
-                    conn.commit()
-                    return redirect('/')
-
-            else:
-                flash('Invalid username or password.', 'error')
-        except sqlite3.IntegrityError:
-            flash('A database integrity error occurred. Please try again.', 'error')
-        except sqlite3.Error:
-            flash('A database error occurred. Please contact support.', 'error')
-        finally:
-            conn.close()
+                    flash('Invalid username or password.', 'error')
+            except sqlite3.IntegrityError:
+                flash('A database integrity error occurred. Please try again.', 'error')
+            except sqlite3.Error:
+                flash('A database error occurred. Please contact support.', 'error')
+            finally:
+                conn.close()
 
     return render_template('login_page.html')
 
@@ -267,44 +270,45 @@ def register():
         email = clean(request.form['email'])
         mfa = 'mfa' in request.form
 
-        try:
-            conn = sqlite3.connect('fishing_app.db')
-            cursor = conn.cursor()
-            cursor.execute('SELECT COUNT(*) FROM user_data WHERE username = ?', (username,))
-            user_exists = cursor.fetchone()[0] > 0
-            if user_exists:
-                flash('Username already exists.', 'error')
-            else:
-                safe_username = escape(username)
-                safe_email = escape(email)
-                if username == 'Hamish':
-                    admin = 1
+        with db_lock:
+            try:
+                conn = sqlite3.connect('fishing_app.db')
+                cursor = conn.cursor()
+                cursor.execute('SELECT COUNT(*) FROM user_data WHERE username = ?', (username,))
+                user_exists = cursor.fetchone()[0] > 0
+                if user_exists:
+                    flash('Username already exists.', 'error')
                 else:
-                    admin = 0
-                cursor.execute('INSERT INTO user_data (username, password, email, admin) VALUES (?, ?, ?, ?)', (safe_username, hashed_password, safe_email, admin))
-                conn.commit()
-                cursor.execute('SELECT user_id FROM user_data WHERE username = ?', (username,))
-                user_id = cursor.fetchone()[0]
-                flash('User registered successfully!', 'success')
-                if mfa:
-                    session['pending_user'] = user_id
-                    conn.close()
-                    return redirect('/setup_mfa')
-                else:
-                    log_user_activity("logged in", username)
-                    cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user_id,))
+                    safe_username = escape(username)
+                    safe_email = escape(email)
+                    if username == 'Hamish':
+                        admin = 1
+                    else:
+                        admin = 0
+                    cursor.execute('INSERT INTO user_data (username, password, email, admin) VALUES (?, ?, ?, ?)', (safe_username, hashed_password, safe_email, admin))
                     conn.commit()
-                    conn.close()
-                    session['user_id'] = user_id
-                    session['username'] = username
-                    return redirect('/')
+                    cursor.execute('SELECT user_id FROM user_data WHERE username = ?', (username,))
+                    user_id = cursor.fetchone()[0]
+                    flash('User registered successfully!', 'success')
+                    if mfa:
+                        session['pending_user'] = user_id
+                        conn.close()
+                        return redirect('/setup_mfa')
+                    else:
+                        log_user_activity("logged in", username)
+                        cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user_id,))
+                        conn.commit()
+                        conn.close()
+                        session['user_id'] = user_id
+                        session['username'] = username
+                        return redirect('/')
 
-        except sqlite3.IntegrityError:
-            flash('A database integrity error occurred. Please try again.', 'error')
-        except sqlite3.Error:
-            flash('A database error occurred. Please contact support.', 'error')
-        finally:
-            conn.close()
+            except sqlite3.IntegrityError:
+                flash('A database integrity error occurred. Please try again.', 'error')
+            except sqlite3.Error:
+                flash('A database error occurred. Please contact support.', 'error')
+            finally:
+                conn.close()
 
     return render_template('register_page.html')
 
@@ -316,16 +320,23 @@ def setup_mfa():
 
     user_id = session['pending_user']
     # This will just retrieve the current MFA secret key for the user
-    conn = sqlite3.connect('fishing_app.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT mfa_secret FROM user_data WHERE user_id = ?", (user_id,))
-    secret = cursor.fetchone()[0]
-    # Creates a MFA secret key
-    if not secret:
-        secret = pyotp.random_base32()
-        cursor.execute("UPDATE user_data SET mfa_secret = ? WHERE user_id = ?", (secret, user_id))
-        conn.commit()
-    conn.close()
+    with db_lock:
+        try:
+            conn = sqlite3.connect('fishing_app.db')
+            cursor = conn.cursor()
+            cursor.execute("SELECT mfa_secret FROM user_data WHERE user_id = ?", (user_id,))
+            secret = cursor.fetchone()[0]
+            # Creates a MFA secret key
+            if not secret:
+                secret = pyotp.random_base32()
+                cursor.execute("UPDATE user_data SET mfa_secret = ? WHERE user_id = ?", (secret, user_id))
+                conn.commit()
+        except sqlite3.IntegrityError:
+            flash('A database integrity error occurred. Please try again.', 'error')
+        except sqlite3.Error:
+            flash('A database error occurred. Please contact support.', 'error')
+        finally:
+            conn.close()
     # Generate QR Code -> So the user can setup MFA on the MS Authenticator App
     totp = pyotp.TOTP(secret)
     uri = totp.provisioning_uri(name="Fishing App", issuer_name="Hamish Software")
@@ -348,29 +359,40 @@ def verify_mfa():
     if request.method == 'POST':
         # Retrieves the code from the text box
         otp_code = request.form['otp']
-        conn = sqlite3.connect('fishing_app.db')
-        cursor = conn.cursor()
-        cursor.execute("SELECT mfa_secret FROM user_data WHERE user_id = ?", (user_id,))
-        secret = cursor.fetchone()[0]
-        cursor.execute('SELECT * FROM user_data WHERE user_id = ?', (user_id,))
-        user = cursor.fetchone()
-        username = user[1]
-        conn.close()
-        totp = pyotp.TOTP(secret)
-        # Compares the input code to the database
-        if totp.verify(otp_code):
-            session['user_id'] = user_id
-            session['username'] = user[1]
-            del session['pending_user']
+        with db_lock:
+            try:
+                conn = sqlite3.connect('fishing_app.db')
+                cursor = conn.cursor()
+                cursor.execute("SELECT mfa_secret FROM user_data WHERE user_id = ?", (user_id,))
+                secret = cursor.fetchone()[0]
+                cursor.execute('SELECT * FROM user_data WHERE user_id = ?', (user_id,))
+                user = cursor.fetchone()
+                username = user[1]
+                conn.close()
+                totp = pyotp.TOTP(secret)
+                # Compares the input code to the database
+                if totp.verify(otp_code):
+                    session['user_id'] = user_id
+                    session['username'] = user[1]
+                    del session['pending_user']
 
-            log_user_activity("logged in", username)
+                    log_user_activity("logged in", username)
 
-            conn = sqlite3.connect('fishing_app.db')
-            cursor = conn.cursor()
-            cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user[0],))
-            conn.commit()
-            return redirect('/')
-        flash("Invalid 2FA code. Try again.", "error")
+                    conn = sqlite3.connect('fishing_app.db')
+                    cursor = conn.cursor()
+                    cursor.execute('INSERT INTO user_sessions (user_id) VALUES (?)', (user[0],))
+                    conn.commit()
+                    conn.close()
+                    flash('Login successful!', 'success')
+                    return redirect('/')
+                else:
+                    flash("Invalid 2FA code. Try again.", "error")
+            except sqlite3.IntegrityError:
+                flash('A database integrity error occurred. Please try again.', 'error')
+            except sqlite3.Error:
+                flash('A database error occurred. Please contact support.', 'error')
+            finally:
+                conn.close()
     return render_template("verify_mfa.html")
 
 @app.route('/profile')
@@ -381,24 +403,25 @@ def profile():
     user_data = []
     user_posts = []
 
-    try:
-        conn = sqlite3.connect('fishing_app.db')
-        cursor = conn.cursor()
+    with db_lock:
+        try:
+            conn = sqlite3.connect('fishing_app.db')
+            cursor = conn.cursor()
 
-        # Fetch user data
-        cursor.execute('SELECT * FROM user_data WHERE user_id = ?', (session['user_id'],))
-        user_data = cursor.fetchone()
+            # Fetch user data
+            cursor.execute('SELECT * FROM user_data WHERE user_id = ?', (session['user_id'],))
+            user_data = cursor.fetchone()
 
-        # Fetch user posts
-        cursor.execute('SELECT posts.post_id, posts.image_path, posts.caption, user_data.username, user_data.profile_image_path FROM posts JOIN user_data ON posts.user_id = user_data.user_id WHERE posts.user_id = ?', (session['user_id'],))
-        user_posts = cursor.fetchall()
+            # Fetch user posts
+            cursor.execute('SELECT posts.post_id, posts.image_path, posts.caption, user_data.username, user_data.profile_image_path FROM posts JOIN user_data ON posts.user_id = user_data.user_id WHERE posts.user_id = ?', (session['user_id'],))
+            user_posts = cursor.fetchall()
 
-    except sqlite3.IntegrityError:
-        flash('A database integrity error occurred. Please try again.', 'error')
-    except sqlite3.Error:
-        flash('A database error occurred. Please contact support.', 'error')
-    finally:
-        conn.close()
+        except sqlite3.IntegrityError:
+            flash('A database integrity error occurred. Please try again.', 'error')
+        except sqlite3.Error:
+            flash('A database error occurred. Please contact support.', 'error')
+        finally:
+            conn.close()
 
     return render_template('profile.html', user_data=user_data, user_posts=user_posts)
 
@@ -420,13 +443,21 @@ def upload_profile_image():
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         # Update the user's profile image in the database
         user_id = session['user_id']
-        conn = sqlite3.connect('fishing_app.db')
-        cursor = conn.cursor()
-        cursor.execute('UPDATE user_data SET profile_image_path = ? WHERE user_id = ?', (f'uploads/{filename}', user_id))
-        conn.commit()
-        conn.close()
-        flash('Profile image updated successfully', 'success')
-        return redirect('/profile')
+        with db_lock:
+            try:
+                conn = sqlite3.connect('fishing_app.db')
+                cursor = conn.cursor()
+                cursor.execute('UPDATE user_data SET profile_image_path = ? WHERE user_id = ?', (f'uploads/{filename}', user_id))
+                conn.commit()
+                flash('Profile image updated successfully', 'success')
+                log_user_activity("updated their profile image", session['username'])
+            except sqlite3.IntegrityError:
+                flash('A database integrity error occurred. Please try again.', 'error')
+            except sqlite3.Error:
+                flash('A database error occurred. Please contact support.', 'error')
+            finally:
+                conn.close()
+                return redirect('/profile')
     else:
         flash('File type not allowed', 'error')
         return redirect('/profile')
@@ -448,23 +479,24 @@ def edit_profile():
 
     email = clean(request.form.get('email'))
 
-    try:
-        safe_username = escape(username)
-        safe_email = escape(email)
-        conn = sqlite3.connect('fishing_app.db')
-        cursor = conn.cursor()
-        print('runnning db')
-        print(session['user_id'])
-        cursor.execute('UPDATE user_data SET username = ?, email = ? WHERE user_id = ?', (safe_username, safe_email, session['user_id']))
-        conn.commit()
-        flash('User info successfully updated!', 'success')
-        log_user_activity("edited their profile", session['username'])
-    except sqlite3.IntegrityError:
-        flash('A database integrity error occurred. Please try again.', 'error')
-    except sqlite3.Error:
-        flash('A database error occurred. Please contact support.', 'error')
-    finally:
-        conn.close()
+    with db_lock:
+        try:
+            safe_username = escape(username)
+            safe_email = escape(email)
+            conn = sqlite3.connect('fishing_app.db')
+            cursor = conn.cursor()
+            print('runnning db')
+            print(session['user_id'])
+            cursor.execute('UPDATE user_data SET username = ?, email = ? WHERE user_id = ?', (safe_username, safe_email, session['user_id']))
+            conn.commit()
+            flash('User info successfully updated!', 'success')
+            log_user_activity("edited their profile", session['username'])
+        except sqlite3.IntegrityError:
+            flash('A database integrity error occurred. Please try again.', 'error')
+        except sqlite3.Error:
+            flash('A database error occurred. Please contact support.', 'error')
+        finally:
+            conn.close()
 
     return redirect('/profile')
 
@@ -481,20 +513,21 @@ def user_edit_post():
         flash('Invalid caption, try again', 'error')
         return redirect('/profile')
 
-    try:
-        safe_caption = escape(caption)
-        conn = sqlite3.connect('fishing_app.db')
-        cursor = conn.cursor()
-        cursor.execute('UPDATE posts SET caption = ? WHERE post_id = ? AND user_id = ?', (safe_caption, post_id, session['user_id']))
-        conn.commit()
-        flash('Post updated successfully!', 'success')
-        log_user_activity("edited their post", session['username'])
-    except sqlite3.IntegrityError:
-        flash('A database integrity error occurred. Please try again.', 'error')
-    except sqlite3.Error:
-        flash('A database error occurred. Please contact support.', 'error')
-    finally:
-        conn.close()
+    with db_lock:
+        try:
+            safe_caption = escape(caption)
+            conn = sqlite3.connect('fishing_app.db')
+            cursor = conn.cursor()
+            cursor.execute('UPDATE posts SET caption = ? WHERE post_id = ? AND user_id = ?', (safe_caption, post_id, session['user_id']))
+            conn.commit()
+            flash('Post updated successfully!', 'success')
+            log_user_activity("edited their post", session['username'])
+        except sqlite3.IntegrityError:
+            flash('A database integrity error occurred. Please try again.', 'error')
+        except sqlite3.Error:
+            flash('A database error occurred. Please contact support.', 'error')
+        finally:
+            conn.close()
 
     return redirect('/profile')
 
@@ -506,18 +539,19 @@ def user_delete_post():
 
     post_id = request.form.get('post_id')
 
-    try:
-        conn = sqlite3.connect('fishing_app.db')
-        cursor = conn.cursor()
-        cursor.execute('DELETE FROM posts WHERE post_id = ? AND user_id = ?', (post_id, session['user_id']))
-        conn.commit()
-        flash('Post deleted successfully!', 'success')
-    except sqlite3.IntegrityError:
-        flash('A database integrity error occurred. Please try again.', 'error')
-    except sqlite3.Error:
-        flash('A database error occurred. Please contact support.', 'error')
-    finally:
-        conn.close()
+    with db_lock:
+        try:
+            conn = sqlite3.connect('fishing_app.db')
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM posts WHERE post_id = ? AND user_id = ?', (post_id, session['user_id']))
+            conn.commit()
+            flash('Post deleted successfully!', 'success')
+        except sqlite3.IntegrityError:
+            flash('A database integrity error occurred. Please try again.', 'error')
+        except sqlite3.Error:
+            flash('A database error occurred. Please contact support.', 'error')
+        finally:
+            conn.close()
 
     return redirect('/profile')
 
@@ -525,17 +559,18 @@ def user_delete_post():
 def logout():
     if 'username' in session:
         log_user_activity("logged out", session['username'])
-        try:
-            conn = sqlite3.connect('fishing_app.db')
-            cursor = conn.cursor()
-            cursor.execute('UPDATE user_sessions SET logout_time = CURRENT_TIMESTAMP, active = 0 WHERE user_id = ? AND active = 1', (session['user_id'],))
-            conn.commit()
-        except sqlite3.IntegrityError:
-            flash('A database integrity error occurred. Please try again.', 'error')
-        except sqlite3.Error:
-            flash('A database error occurred. Please contact support.', 'error')
-        finally:
-            conn.close()
+        with db_lock:
+            try:
+                conn = sqlite3.connect('fishing_app.db')
+                cursor = conn.cursor()
+                cursor.execute('UPDATE user_sessions SET logout_time = CURRENT_TIMESTAMP, active = 0 WHERE user_id = ? AND active = 1', (session['user_id'],))
+                conn.commit()
+            except sqlite3.IntegrityError:
+                flash('A database integrity error occurred. Please try again.', 'error')
+            except sqlite3.Error:
+                flash('A database error occurred. Please contact support.', 'error')
+            finally:
+                conn.close()
     session.clear()
     return redirect('/')
 
@@ -552,17 +587,18 @@ def fish_dex():
         flash('Please login to access this page.', 'error')
         return redirect('/')
     if request.method == 'GET':
-        try:
-            conn = sqlite3.connect('fishing_app.db')
-            cursor = conn.cursor()
-            cursor.execute('SELECT * FROM user_fishdata WHERE user_id = ?', (session['user_id'],))
-            caught_list = cursor.fetchall()
-        except sqlite3.IntegrityError:
-            flash('A database integrity error occurred. Please try again.', 'error')
-        except sqlite3.Error:
-            flash('A database error occurred. Please contact support.', 'error')
-        finally:
-            conn.close()
+        with db_lock:
+            try:
+                conn = sqlite3.connect('fishing_app.db')
+                cursor = conn.cursor()
+                cursor.execute('SELECT * FROM user_fishdata WHERE user_id = ?', (session['user_id'],))
+                caught_list = cursor.fetchall()
+            except sqlite3.IntegrityError:
+                flash('A database integrity error occurred. Please try again.', 'error')
+            except sqlite3.Error:
+                flash('A database error occurred. Please contact support.', 'error')
+            finally:
+                conn.close()
         uncaught_list = [fish for fish in FISH_LIST if fish not in [fish[1] for fish in caught_list]]
     return render_template('fish_dex.html', caught_list=caught_list, uncaught_list=uncaught_list)
 
@@ -575,42 +611,44 @@ def upload_fish_image():
     image = request.files['image']
 
     if image and allowed_file(image.filename):
-        try:
-            filename = secure_filename(image.filename)
-            image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            image.save(image_path)
+        
+        with db_lock:
+            try:
+                filename = secure_filename(image.filename)
+                image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                image.save(image_path)
 
-            # Update the database with the new image path
-            conn = sqlite3.connect('fishing_app.db')
-            cursor = conn.cursor()
-            if fish_id:
-                try:
-                    cursor.execute('UPDATE user_fishdata SET image_path = ? WHERE fish_id = ? AND user_id = ?',
-                                (image_path, fish_id, session['user_id']))
-                    conn.commit()
-                except sqlite3.IntegrityError:
-                    flash('A database integrity error occurred. Please try again.', 'error')
-                except sqlite3.Error:
-                    flash('A database error occurred. Please contact support.', 'error')
-            else:
-                try:
-                    cursor.execute('INSERT INTO user_fishdata (fish_name, user_id, image_path) VALUES (?, ?, ?)',
-                                (request.form.get('fish_name'), session['user_id'], image_path))
-                    conn.commit()
-                except sqlite3.IntegrityError:
-                    flash('A database integrity error occurred. Please try again.', 'error')
-                except sqlite3.Error:
-                    flash('A database error occurred. Please contact support.', 'error')
-            conn.close()
-            flash('Image uploaded successfully!', 'success')
+                # Update the database with the new image path
+                conn = sqlite3.connect('fishing_app.db')
+                cursor = conn.cursor()
+                if fish_id:
+                    try:
+                        cursor.execute('UPDATE user_fishdata SET image_path = ? WHERE fish_id = ? AND user_id = ?',
+                                    (image_path, fish_id, session['user_id']))
+                        conn.commit()
+                    except sqlite3.IntegrityError:
+                        flash('A database integrity error occurred. Please try again.', 'error')
+                    except sqlite3.Error:
+                        flash('A database error occurred. Please contact support.', 'error')
+                else:
+                    try:
+                        cursor.execute('INSERT INTO user_fishdata (fish_name, user_id, image_path) VALUES (?, ?, ?)',
+                                    (request.form.get('fish_name'), session['user_id'], image_path))
+                        conn.commit()
+                    except sqlite3.IntegrityError:
+                        flash('A database integrity error occurred. Please try again.', 'error')
+                    except sqlite3.Error:
+                        flash('A database error occurred. Please contact support.', 'error')
+                flash('Image uploaded successfully!', 'success')
 
-        except FileNotFoundError:
-            flash('File failed to upload, please retry', 'error')
+            except FileNotFoundError:
+                flash('File failed to upload, please retry', 'error')
 
-        finally:
-            return redirect('/fish_dex')
+            finally:
+                conn.close()
+                return redirect('/fish_dex')
     else:
-        flash('Failed to upload image. Please try again.', 'error')
+        flash('Invalid image type. Please try again.', 'error')
         return redirect('/fish_dex')
 
 @app.route('/create_post', methods=['POST'])
@@ -636,24 +674,25 @@ def create_post():
             relative_image_path = os.path.join('uploads', filename).replace("\\", "/")  # Store relative path
             image.save(image_path)
 
-            try:
-                safe_caption = escape(caption)
-                conn = sqlite3.connect('fishing_app.db')
-                cursor = conn.cursor()
-                cursor.execute('INSERT INTO posts (user_id, image_path, caption) VALUES (?, ?, ?)',
-                            (session['user_id'], relative_image_path, safe_caption))
-                conn.commit()
-                flash('Post created successfully!', 'success')
-                log_user_activity("created a post", session['username'])
+            with db_lock:
+                try:
+                    safe_caption = escape(caption)
+                    conn = sqlite3.connect('fishing_app.db')
+                    cursor = conn.cursor()
+                    cursor.execute('INSERT INTO posts (user_id, image_path, caption) VALUES (?, ?, ?)',
+                                (session['user_id'], relative_image_path, safe_caption))
+                    conn.commit()
+                    flash('Post created successfully!', 'success')
+                    log_user_activity("created a post", session['username'])
 
-            except sqlite3.IntegrityError:
-                flash('A database integrity error occurred. Please try again.', 'error')
+                except sqlite3.IntegrityError:
+                    flash('A database integrity error occurred. Please try again.', 'error')
 
-            except sqlite3.Error:
-                flash('A database error occurred. Please contact support.', 'error')
+                except sqlite3.Error:
+                    flash('A database error occurred. Please contact support.', 'error')
 
-            finally:
-                conn.close()
+                finally:
+                    conn.close()
 
         except FileNotFoundError:
             flash('File failed to upload, please retry', 'error')
@@ -690,54 +729,55 @@ def get_logged_in_users():
         flash('Please login to access this method.', 'error')
         return redirect('/')
 
-    try:
-        conn = sqlite3.connect('fishing_app.db')
-        cursor = conn.cursor()
+    with db_lock:
+        try:
+            conn = sqlite3.connect('fishing_app.db')
+            cursor = conn.cursor()
 
-        # Fetch login and logout times from the last day
-        cursor.execute('''
-            SELECT login_time, logout_time
-            FROM user_sessions
-            WHERE login_time >= datetime('now', '-1 day')
-        ''')
-        data = cursor.fetchall()
+            # Fetch login and logout times from the last day
+            cursor.execute('''
+                SELECT login_time, logout_time
+                FROM user_sessions
+                WHERE login_time >= datetime('now', '-1 day')
+            ''')
+            data = cursor.fetchall()
 
-        # Define timezones
-        utc_tz = pytz.utc
-        aest_tz = pytz.timezone('Australia/Sydney')  # Handles AEST/AEDT automatically
+            # Define timezones
+            utc_tz = pytz.utc
+            aest_tz = pytz.timezone('Australia/Sydney')  # Handles AEST/AEDT automatically
 
-        events = []
+            events = []
 
-        for row in data:
-            login_time = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")
-            login_time = utc_tz.localize(login_time).astimezone(aest_tz)
-            events.append((login_time, 1))  # Login event
+            for row in data:
+                login_time = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")
+                login_time = utc_tz.localize(login_time).astimezone(aest_tz)
+                events.append((login_time, 1))  # Login event
 
-            if row[1]:  # If logout_time is not None
-                logout_time = datetime.strptime(row[1], "%Y-%m-%d %H:%M:%S")
-                logout_time = utc_tz.localize(logout_time).astimezone(aest_tz)
-                events.append((logout_time, -1))  # Logout event
+                if row[1]:  # If logout_time is not None
+                    logout_time = datetime.strptime(row[1], "%Y-%m-%d %H:%M:%S")
+                    logout_time = utc_tz.localize(logout_time).astimezone(aest_tz)
+                    events.append((logout_time, -1))  # Logout event
 
-        # Sort events by time
-        events.sort(key=lambda x: x[0])
+            # Sort events by time
+            events.sort(key=lambda x: x[0])
 
-        timestamps = []
-        logged_in_users = []
-        current_users = 0
+            timestamps = []
+            logged_in_users = []
+            current_users = 0
 
-        for event in events:
-            timestamps.append(event[0].strftime("%Y-%m-%d %H:%M"))
-            current_users += event[1]
-            logged_in_users.append(current_users)
+            for event in events:
+                timestamps.append(event[0].strftime("%Y-%m-%d %H:%M"))
+                current_users += event[1]
+                logged_in_users.append(current_users)
 
-        return jsonify({
-            'timestamps': timestamps,
-            'logged_in_users': logged_in_users
-        })
-    except sqlite3.Error as e:
-        return jsonify({'error': str(e)}), 500
-    finally:
-        conn.close()
+            return jsonify({
+                'timestamps': timestamps,
+                'logged_in_users': logged_in_users
+            })
+        except sqlite3.Error as e:
+            return jsonify({'error': str(e)}), 500
+        finally:
+            conn.close()
 
 
 @app.route('/post_management', methods=['GET'])
@@ -747,17 +787,18 @@ def post_management():
         return redirect('/')
     
     post_data = []
-    try:
-        conn = sqlite3.connect('fishing_app.db')
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM posts')
-        post_data = cursor.fetchall()
-    except sqlite3.IntegrityError:
-        flash('A database integrity error occurred. Please try again.', 'error')
-    except sqlite3.Error:
-        flash('A database error occurred. Please contact support.', 'error')
-    finally:
-        conn.close()
+    with db_lock:
+        try:
+            conn = sqlite3.connect('fishing_app.db')
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM posts')
+            post_data = cursor.fetchall()
+        except sqlite3.IntegrityError:
+            flash('A database integrity error occurred. Please try again.', 'error')
+        except sqlite3.Error:
+            flash('A database error occurred. Please contact support.', 'error')
+        finally:
+            conn.close()
     print(post_data)
     return render_template('post_management.html', post_data=post_data)
 
@@ -769,19 +810,20 @@ def delete_post():
 
     post_id = request.form.get('post_id')
 
-    try:
-        conn = sqlite3.connect('fishing_app.db')
-        cursor = conn.cursor()
-        cursor.execute('DELETE FROM posts WHERE post_id = ?', (post_id,))
-        conn.commit()
-        flash('Post deleted successfully!', 'success')
-        log_user_activity("deleted a post", session['username'])
-    except sqlite3.IntegrityError:
-        flash('A database integrity error occurred. Please try again.', 'error')
-    except sqlite3.Error:
-        flash('A database error occurred. Please contact support.', 'error')
-    finally:
-        conn.close()
+    with db_lock:
+        try:
+            conn = sqlite3.connect('fishing_app.db')
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM posts WHERE post_id = ?', (post_id,))
+            conn.commit()
+            flash('Post deleted successfully!', 'success')
+            log_user_activity("deleted a post", session['username'])
+        except sqlite3.IntegrityError:
+            flash('A database integrity error occurred. Please try again.', 'error')
+        except sqlite3.Error:
+            flash('A database error occurred. Please contact support.', 'error')
+        finally:
+            conn.close()
 
     return redirect('/post_management')
 
@@ -800,20 +842,21 @@ def edit_post():
         flash('Invalid caption, try again', 'error')
         return redirect('/post_management')
 
-    try:
-        safe_caption = escape(caption)
-        conn = sqlite3.connect('fishing_app.db')
-        cursor = conn.cursor()
-        cursor.execute('UPDATE posts SET user_id = ?, image_path = ?, caption = ? WHERE post_id = ?', (user_id, image_src, safe_caption, post_id))
-        conn.commit()
-        flash('Post updated successfully!', 'success')
-        log_user_activity("edited a post", session['username'])
-    except sqlite3.IntegrityError:
-        flash('A database integrity error occurred. Please try again.', 'error')
-    except sqlite3.Error:
-        flash('A database error occurred. Please contact support.', 'error')
-    finally:
-        conn.close()
+    with db_lock:
+        try:
+            safe_caption = escape(caption)
+            conn = sqlite3.connect('fishing_app.db')
+            cursor = conn.cursor()
+            cursor.execute('UPDATE posts SET user_id = ?, image_path = ?, caption = ? WHERE post_id = ?', (user_id, image_src, safe_caption, post_id))
+            conn.commit()
+            flash('Post updated successfully!', 'success')
+            log_user_activity("edited a post", session['username'])
+        except sqlite3.IntegrityError:
+            flash('A database integrity error occurred. Please try again.', 'error')
+        except sqlite3.Error:
+            flash('A database error occurred. Please contact support.', 'error')
+        finally:
+            conn.close()
 
     return redirect('/post_management')
 
@@ -824,24 +867,25 @@ def fishdex_management():
         return redirect('/')
     
     leaderboard = []
-    try:
-        # Fetch leaderboard data
-        conn = sqlite3.connect('fishing_app.db')
-        cursor = conn.cursor()
-        cursor.execute('''
-            SELECT user_data.username, COUNT(user_fishdata.fish_id) AS fish_count
-            FROM user_data
-            LEFT JOIN user_fishdata ON user_data.user_id = user_fishdata.user_id
-            GROUP BY user_data.user_id
-            ORDER BY fish_count DESC
-            LIMIT 10
-        ''')
-        leaderboard = cursor.fetchall()
-        leaderboard = [{'username': row[0], 'fish_count': row[1]} for row in leaderboard]
-    except sqlite3.Error as e:
-        flash(f'A database error occurred: {str(e)}', 'error')
-    finally:
-        conn.close()
+    with db_lock:
+        try:
+            # Fetch leaderboard data
+            conn = sqlite3.connect('fishing_app.db')
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT user_data.username, COUNT(user_fishdata.fish_id) AS fish_count
+                FROM user_data
+                LEFT JOIN user_fishdata ON user_data.user_id = user_fishdata.user_id
+                GROUP BY user_data.user_id
+                ORDER BY fish_count DESC
+                LIMIT 10
+            ''')
+            leaderboard = cursor.fetchall()
+            leaderboard = [{'username': row[0], 'fish_count': row[1]} for row in leaderboard]
+        except sqlite3.Error as e:
+            flash(f'A database error occurred: {str(e)}', 'error')
+        finally:
+            conn.close()
     
     return render_template('fishdex_management.html', fish_list=FISH_LIST, leaderboard=leaderboard)
 
@@ -852,22 +896,23 @@ def wipe_fishdex():
         return redirect('/')
 
     username = request.form['username']
-    try:
-        conn = sqlite3.connect('fishing_app.db')
-        cursor = conn.cursor()
-        cursor.execute('SELECT user_id FROM user_data WHERE username = ?', (username,))
-        user = cursor.fetchone()
-        if user:
-            user_id = user[0]
-            cursor.execute('DELETE FROM user_fishdata WHERE user_id = ?', (user_id,))
-            conn.commit()
-            flash('FishDex data wiped successfully!', 'success')
-        else:
-            flash('User not found.', 'error')
-    except sqlite3.Error as e:
-        flash(f'A database error occurred: {str(e)}', 'error')
-    finally:
-        conn.close()
+    with db_lock:
+        try:
+            conn = sqlite3.connect('fishing_app.db')
+            cursor = conn.cursor()
+            cursor.execute('SELECT user_id FROM user_data WHERE username = ?', (username,))
+            user = cursor.fetchone()
+            if user:
+                user_id = user[0]
+                cursor.execute('DELETE FROM user_fishdata WHERE user_id = ?', (user_id,))
+                conn.commit()
+                flash('FishDex data wiped successfully!', 'success')
+            else:
+                flash('User not found.', 'error')
+        except sqlite3.Error as e:
+            flash(f'A database error occurred: {str(e)}', 'error')
+        finally:
+            conn.close()
     return redirect('/fishdex_management')
 
 @app.route('/user_management', methods=['GET'])
@@ -877,17 +922,18 @@ def user_management():
         return redirect('/')
     
     user_data = []
-    try:
-        conn = sqlite3.connect('fishing_app.db')
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM user_data')
-        user_data = cursor.fetchall()
-    except sqlite3.IntegrityError:
-        flash('A database integrity error occurred. Please try again.', 'error')
-    except sqlite3.Error:
-        flash('A database error occurred. Please contact support.', 'error')
-    finally:
-        conn.close()
+    with db_lock:
+        try:
+            conn = sqlite3.connect('fishing_app.db')
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM user_data')
+            user_data = cursor.fetchall()
+        except sqlite3.IntegrityError:
+            flash('A database integrity error occurred. Please try again.', 'error')
+        except sqlite3.Error:
+            flash('A database error occurred. Please contact support.', 'error')
+        finally:
+            conn.close()
     return render_template('user_management.html', user_data=user_data)
 
 @app.route('/edit_user', methods=['POST'])
@@ -904,20 +950,21 @@ def edit_user():
         flash('Invalid username, try again', 'error')
         return redirect('/user_management')
 
-    try:
-        safe_username = escape(username)
-        conn = sqlite3.connect('fishing_app.db')
-        cursor = conn.cursor()
-        cursor.execute('UPDATE user_data SET username = ?, admin = ? WHERE user_id = ?', (safe_username, admin, user_id))
-        conn.commit()
-        flash('User updated successfully!', 'success')
-        log_user_activity("edited user data", session['username'])
-    except sqlite3.IntegrityError:
-        flash('A database integrity error occurred. Please try again.', 'error')
-    except sqlite3.Error:
-        flash('A database error occurred. Please contact support.', 'error')
-    finally:
-        conn.close()
+    with db_lock:
+        try:
+            safe_username = escape(username)
+            conn = sqlite3.connect('fishing_app.db')
+            cursor = conn.cursor()
+            cursor.execute('UPDATE user_data SET username = ?, admin = ? WHERE user_id = ?', (safe_username, admin, user_id))
+            conn.commit()
+            flash('User updated successfully!', 'success')
+            log_user_activity("edited user data", session['username'])
+        except sqlite3.IntegrityError:
+            flash('A database integrity error occurred. Please try again.', 'error')
+        except sqlite3.Error:
+            flash('A database error occurred. Please contact support.', 'error')
+        finally:
+            conn.close()
 
     return redirect('/user_management')
 
@@ -929,19 +976,20 @@ def delete_user():
 
     user_id = request.form.get('user_id')
 
-    try:
-        conn = sqlite3.connect('fishing_app.db')
-        cursor = conn.cursor()
-        cursor.execute('DELETE FROM user_data WHERE user_id = ?', (user_id,))
-        conn.commit()
-        flash('User deleted successfully!', 'success')
-        log_user_activity("deleted user", session['username'])
-    except sqlite3.IntegrityError:
-        flash('A database integrity error occurred. Please try again.', 'error')
-    except sqlite3.Error:
-        flash('A database error occurred. Please contact support.', 'error')
-    finally:
-        conn.close()
+    with db_lock:
+        try:
+            conn = sqlite3.connect('fishing_app.db')
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM user_data WHERE user_id = ?', (user_id,))
+            conn.commit()
+            flash('User deleted successfully!', 'success')
+            log_user_activity("deleted user", session['username'])
+        except sqlite3.IntegrityError:
+            flash('A database integrity error occurred. Please try again.', 'error')
+        except sqlite3.Error:
+            flash('A database error occurred. Please contact support.', 'error')
+        finally:
+            conn.close()
 
     return redirect('/user_management')
 
