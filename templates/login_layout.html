@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- same head setup as main_layout and admin_layout, but without ion icons -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fishing App</title>
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-    <link rel="stylesheet" href="{{ url_for('static', filename='login_style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='login_style.css') }}"> <!-- Links to a separate CSS styling page to main pages -->
 </head>
 <body>
     <div class="container">
+        <!-- flash setup -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <ul class="flashes">
@@ -18,9 +20,11 @@
                 </ul>
             {% endif %}
         {% endwith %}
+        <!-- block for content -->
         {% block body %}
         {% endblock %}
     </div>
+    <!-- script to close flash messages -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const closeButtons = document.querySelectorAll('.flashes .close');

@@ -2,30 +2,31 @@
 
 {% block body%}
 <div id="content">
-    <div class="profile_container">
-        <div class="profile_header">
-            <div class="profile_image_wrapper" onclick="openProfileImageModal()">
-                <img src="{{ url_for('static', filename=user_data[5] or 'images/blank_profile_pic.png') }}" class="profile_image" id="profileImage" alt="Profile Picture">
-                <div class="profile_overlay">
-                    <ion-icon name="camera-outline"></ion-icon>
+    <div class="profile_container"> 
+        <div class="profile_header"> <!-- div for the header content -->
+            <div class="profile_image_wrapper" onclick="openProfileImageModal()"> <!-- div for the profile image -->
+                <img src="{{ url_for('static', filename=user_data[5] or 'images/blank_profile_pic.png') }}" class="profile_image" id="profileImage" alt="Profile Picture"> <!-- profile image if one exists, else the default blank pic -->
+                <div class="profile_overlay"> <!-- div for the overlay content, will appear when the profile pic is hovered over -->
+                    <ion-icon name="camera-outline"></ion-icon> <!-- icon for the camera, will appear when the profile pic is hovered over -->
                 </div>
             </div>
-            <div class="profile_details">
+            <div class="profile_details"> <!-- div for the profile details -->
                 <h1>{{ user_data[1] }}</h1>
-                <button class="edit_profile_btn" onclick="openEditProfileModal()">Edit Profile</button>
+                <button class="edit_profile_btn" onclick="openEditProfileModal()">Edit Profile</button> <!-- button to edit the profile, opens the modal form -->
             </div>
         </div>
-        <h3>--- Posts <span class="hidden_info">- Tap to Edit </span>---</h3>
+        <h3>--- Posts <span class="hidden_info">- Tap to Edit </span>---</h3> <!-- header for the posts, the hidden "Tap to Edit" 
+        appears in mobile view to make it more obvious as users cannot hover over posts on mobile, meaning the edit + delete buttons wont appear unless clicked -->
     </div>
     <div class="posts">
         {% for post in user_posts %}
-            <div class="post">
-                <div class="post_overlay">
+            <div class="post"> <!-- same post styling as the home page -->
+                <div class="post_overlay"> <!-- div for the overlay content, will appear when the post is hovered over/tapped on mobile -->
                     <button class="edit_post_btn" onclick="openEditPostModal('{{ post[0] }}', '{{ post[2] }}')">Edit</button>
                     <button class="delete_post_btn" onclick="openDeletePostModal('{{ post[0] }}')">Delete</button>
                 </div>
                 <div class="post_header">
-                    {% if post[4] %}
+                    {% if post[4] %} <!-- if the user has a profile image, display it, else display the default blank pic -->
                         <img src="{{ url_for('static', filename=post[4]) }}" alt="Profile Image" class="post_profile_image">
                     {% else %}
                         <img src="{{ url_for('static', filename='/images/blank_profile_pic.png') }}" alt="Profile Image" class="post_profile_image">
@@ -47,8 +48,8 @@
             <h2>Upload Profile Picture</h2>
             <form id="profileImageForm" action="{{ url_for('upload_profile_image') }}" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input type="file" id="profileImageInput" name="profile_image" accept="image/*" onchange="previewProfileImage(event)" required>
-                <img id="profileImagePreview" src="#" alt="Profile Image Preview" style="display: none; margin-top: 10px; margin-bottom: 10px; max-width: 100%;">
+                <input type="file" id="profileImageInput" name="profile_image" accept="image/*" onchange="previewProfileImage(event)" required> <!-- input for the profile pic, triggers profile image preview js when uploaded -->
+                <img id="profileImagePreview" src="#" alt="Profile Image Preview" style="display: none; margin-top: 10px; margin-bottom: 10px; max-width: 100%; border-radius: 50%;"> <!-- profile pic preview, hidden by default -->
                 <button type="submit">Upload</button>
             </form>
         </div>
@@ -65,7 +66,7 @@
                 <input type="text" id="username" name="username" value="{{ user_data[1] }}" required>
                 <label for="email">Email:</label>
                 <input type="text" id="email" name="email" value="{{ user_data[3] }}">
-                {% if not user_data[6] %}
+                {% if not user_data[6] %} <!-- if the user does not have MFA enabled, display the MFA checkbox -->
                     <div class="mfa_checkbox">
                         <input type="checkbox" id="mfa" name="mfa">
                         <label for="mfa">Activate MFA</label>
@@ -105,7 +106,7 @@
         </div>
     </div>
 
-    <script>
+    <script> // JS for all the modal form opening and closing + profile image preview
         function openProfileImageModal() {
             document.getElementById('profileImageModal').style.display = 'block';
         }

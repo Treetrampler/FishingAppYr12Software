@@ -2,14 +2,14 @@
 
 {% block body%}
 
-<div class="glass_container_login glass_container">
+<div class="glass_container_login glass_container"> <!-- inherits class for general glass containers which includes the register box, mfa, etc has its own for the login styling -->
     <div class="login_box">
         <h2>Login</h2>
         <form action="{{ url_for('login') }}" method="post">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> <!-- CSRF token for security -->
             <input type="text" id="username" name="username" placeholder="Username" required>
             <input type="password" id="password" name="password" placeholder="Password" required>
-            <span class="toggle_password_login" onclick="togglePasswordVisibility('password')">&#128065;</span>
+            <span class="toggle_password_login" onclick="togglePasswordVisibility('password')">&#128065;</span> <!-- button that triggers js that alters whether password text is visible or not, for accessiblity -->
             <br>
             <button type="submit">Login</button>
             <p>Don't have an account? <a href="/register" id="register">Register</a></p>
@@ -18,7 +18,7 @@
 </div>
 
 <script>
-    function togglePasswordVisibility(fieldId) {
+    function togglePasswordVisibility(fieldId) { // js for toggling password visibility
         const field = document.getElementById(fieldId);
         if (field.type === "password") {
             field.type = "text";

@@ -2,38 +2,38 @@
 
 {% block body%}
 
-<div class="glass_container_register glass_container">
+<div class="glass_container_register glass_container"> <!-- inherits parent class as well as its own register class -->
     <div class="register_box">
         <h2>Register</h2>
-        <form action="{{ url_for('register') }}" method="post">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <form action="{{ url_for('register') }}" method="post"> <!-- form for register details -->
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> <!-- csrf token for security -->
             <div class="input-container">
                 <input type="text" id="username" name="username" placeholder="Username *" required>
             </div>
             <div class="input-container">
                 <input type="password" id="password" name="password" placeholder="Password *" required>
-                <span class="toggle-password" onclick="togglePasswordVisibility('password')">&#128065;</span>
+                <span class="toggle-password" onclick="togglePasswordVisibility('password')">&#128065;</span> <!-- eye icon to toggle password visibility -->
             </div>
             <div class="input-container">
                 <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm Password *" required>
-                <span class="toggle-password" onclick="togglePasswordVisibility('confirm_password')">&#128065;</span>
-                <div class="tooltip" id="password-tooltip">For security, password must be over 6 characters</div>
+                <span class="toggle-password" onclick="togglePasswordVisibility('confirm_password')">&#128065;</span>   <!-- eye icon to toggle password visibility -->
+                <div class="tooltip" id="password-tooltip">For security, password must be over 6 characters</div> <!-- tooltip, only appears when password container is hovered over/clicked, gives extra useful info (UX/UI feature) -->
             </div>
             <div class="input-container">
                 <input type="email" id="email" name="email" placeholder="Email">
             </div>
-            <div class="mfa_checkbox">
+            <div class="mfa_checkbox"> <!-- checkbox for MFA -->
                 <input type="checkbox" id="mfa" name="mfa">
                 <label for="mfa">Activate MFA</label>
             </div>
             <button type="submit">Register</button>
-            <p>Already have an account? <a href="/login" id="login">Login</a></p>
+            <p>Already have an account? <a href="/login" id="login">Login</a></p> <!-- link to login page -->
         </form>
     </div>
 </div>
 
-<script>
-    function togglePasswordVisibility(fieldId) {
+<script> // js for toggling password visibility and tooltip
+    function togglePasswordVisibility(fieldId) { // js function to toggle password visibility
         const field = document.getElementById(fieldId);
         if (field.type === "password") {
             field.type = "text";
@@ -41,6 +41,8 @@
             field.type = "password";
         }
     }
+
+    // js for tooltip
 
     document.getElementById('password').addEventListener('focus', function() {
         document.getElementById('password-tooltip').style.display = 'block';

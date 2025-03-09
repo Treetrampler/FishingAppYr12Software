@@ -2,12 +2,12 @@
 
 {% block body %}
 
-<div class="glass_container_mfa glass_container">
+<div class="glass_container_mfa glass_container"> <!-- inherits glass box class + its own class -->
     <div class="MFA_box">
         <h2>Enter your MFA Code</h2>
         <form method="POST">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <input type="text" name="otp" placeholder="Enter 6-digit code" required>
+            <input type="text" name="otp" placeholder="Enter 6-digit code" required> <!-- this will be compared with code and used for verification -->
             <button type="submit">Verify</button>
         </form>
     </div> 

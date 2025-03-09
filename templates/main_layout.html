@@ -2,26 +2,28 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{% block title %}Fishing App{% endblock %}</title>
-        <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-        <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
-        <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Necessary for responsive design -->
+        <title>Fishing App</title> <!-- Title of website -->
+        <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">  <!-- Link to favicon, displayed next to title of page -->
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"> <!-- Link to CSS styling page -->
+        <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script> <!-- Link to Ionicons used for nav bar styling -->
+        <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script> <!-- Link to Ionicons used for nav bar styling -->
     </head>
     <body>
         <div class="container">
+            <!-- setup flashes -->
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     <ul class="flashes">
                         {% for category, message in messages %}
-                            <li class="{{ category }}">{{ message }} <span class="close">&times;</span></li>
+                            <li class="{{ category }}">{{ message }} <span class="close">&times;</span></li> <!-- Close button for flash messages -->
                         {% endfor %}
                     </ul>
                 {% endif %}
             {% endwith %}
             <div id="sidebar">
-                <h1>𝓒𝓪𝓽𝓬𝓱</h1>
+                <h1>𝓒𝓪𝓽𝓬𝓱</h1> <!-- special character title, UI improvement -->
+                <!-- the list for nav bar, contains links to each page -->
                 <ul>
                     <li>
                         <a href="{{ url_for('index') }}" class="nav_item">
@@ -41,7 +43,7 @@
                             Fish-Dex
                         </a>
                     </li>
-                    {% if 'user_id' in session %}
+                    {% if 'user_id' in session %} <!-- If user is logged in, display profile and logout buttons -->
                         <li>
                             <a href="{{ url_for('profile') }}" class="username_btn nav_4">
                                 <ion-icon name="person-circle-outline" class="nav_4"></ion-icon>
@@ -54,7 +56,7 @@
                                 Logout
                             </a>
                         </li>
-                    {% else %}
+                    {% else %} <!-- If user is not logged in, display login button -->
                         <li>
                             <a href="{{ url_for('login') }}" class="login_btn">
                                 <span><ion-icon name="person-circle-outline" class="nav_4"></ion-icon></span>
@@ -67,6 +69,7 @@
             {% block body %}
             {% endblock %}     
         </div>
+        <!-- js for flashes -->
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const closeButtons = document.querySelectorAll('.flashes .close');

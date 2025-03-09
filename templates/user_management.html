@@ -3,6 +3,7 @@
 {% block body %}
 
 <h1>Manage User Accounts</h1>
+<!-- similar table setup to post management page, go there for reference -->
 <table border="1">
     <thead>
         <tr>
@@ -17,9 +18,9 @@
             <tr>
                 <td data-label="User ID">{{ user[0] }}</td>
                 <td data-label="Username">{{ user[1] }}</td>
-                <td data-label="Admin">{{ 'Yes' if user[4] == 1 else 'No' }}</td>
-                <td data-label="Actions">
-                    <a href="javascript:void(0);" onclick="openEditModal('{{ user[0] }}', '{{ user[1] }}', '{{ user[4] }}')">Edit</a> |
+                <td data-label="Admin">{{ 'Yes' if user[4] == 1 else 'No' }}</td> <!-- if user is admin, display Yes, else No (instead of 1 and 0) -->
+                <td data-label="Actions"> <!-- edit and delete links, activates the modal forms -->
+                    <a href="javascript:void(0);" onclick="openEditModal('{{ user[0] }}', '{{ user[1] }}', '{{ user[4] }}')">Edit</a> | 
                     <a href="javascript:void(0);" onclick="openDeleteModal('{{ user[0] }}')">Delete</a>
                 </td>
             </tr>
@@ -39,8 +40,8 @@
             <input type="text" id="edit_username" name="username" required>
             <label for="edit_admin">Admin:</label>
             <select id="edit_admin" name="admin">
-                <option value="0">No</option>
-                <option value="1">Yes</option>
+                <option value="0">No</option> <!-- default value is No instead of 0 -->
+                <option value="1">Yes</option> <!-- if user is admin, Yes is selected instead of 1 -->
             </select>
             <button type="submit">Save Changes</button>
         </form>
@@ -52,7 +53,7 @@
     <div class="modal-content">
         <span class="close" onclick="closeDeleteModal()">&times;</span>
         <h2>Delete User</h2>
-        <p>Are you sure you want to delete this user?</p>
+        <p>Are you sure you want to delete this user?</p> <!-- confirmation message for UX -->
         <form id="deleteUserForm" action="{{ url_for('delete_user') }}" method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" id="delete_user_id" name="user_id">
@@ -61,7 +62,7 @@
     </div>
 </div>
 
-<script>
+<script> // js to open and close modal forms
     function openEditModal(userId, username, admin) {
         document.getElementById('edit_user_id').value = userId;
         document.getElementById('edit_username').value = username;
