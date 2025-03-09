@@ -320,6 +320,7 @@ body {
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     text-align: center;
+    min-width: 175px;
     max-width: 300px; /* Cap the maximum width */
     max-height: 200px; /* Cap the maximum height */
     overflow: hidden; /* Hide overflow content */
@@ -823,6 +824,11 @@ form button:hover {
     .found_fish, .unfound_fish {
         grid-template-columns: repeat(2, 1fr); /* Create a 3-column grid */
         width: 100%;
+        margin-left: 0;
+    }
+
+    .fish_card {
+        min-width: 145px;
     }
 
     .hidden_info {
