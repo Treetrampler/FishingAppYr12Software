@@ -1,24 +1,24 @@
-* {
-    margin: 0;
+* { 
+    margin: 0; 
     box-sizing: border-box;
     font-family: 'Poppins', sans-serif;
 }
 
 body {
-    min-height: 100vh;
+    min-height: 100vh; /* Ensure the body takes up the full height of the screen */
     display: flex;
-    flex-direction: column;
-    justify-content: center;
+    flex-direction: column; 
+    justify-content: center; /* Center the content vertically */
     align-items: center;
-    background-image: url('images/background-login-image-6.jpg');
+    background-image: url('images/background-login-image-6.jpg'); /* Background image */
     background-size: cover;
     background-position: center;
 }
 
-.glass_container {
-    width: 300px;
-    position: relative;
-    z-index: 1;
+.glass_container { /* Container for the glass effect */
+    width: 300px; /* fixed width of the container */
+    position: relative; /* Ensure the container is positioned relative to the body */
+    z-index: 1; /* Ensure the container appears above the background image */
     background: rgba(255, 255, 255, 0.1);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
@@ -60,7 +60,7 @@ body {
 
 /* Styling for the toggle password icon */
 .toggle-password {
-    position: absolute;
+    position: absolute; /* allows for the icon to be put over the top of other elements */
     right: 10px;
     top: 40%;
     cursor: pointer;
@@ -68,7 +68,7 @@ body {
     color: white;
 }
 
-.toggle_password_login {
+.toggle_password_login { /* Styling for the toggle password icon on the login page */
     position: absolute;
     right: 30px;
     top: 40%;
@@ -77,14 +77,14 @@ body {
     color: white;
 }
 
-.toggle-password:hover {
+.toggle-password:hover { /* slight colour change when hovered, improve UX */
     color: lightgrey;
 }
 
 /* Styling for the tooltip */
 .tooltip {
-    display: none;
-    position: absolute;
+    display: none; /* Hide the tooltip by default */
+    position: absolute; /* allows the tooltip to be positioned on top of stuff */
     top: 50%;
     left: 0;
     transform: translateY(-50%);
@@ -93,21 +93,21 @@ body {
     padding: 5px 10px;
     border-radius: 5px;
     font-size: 12px;
-    z-index: 100;
+    z-index: 100; /* Ensure the tooltip appears above everything */
 }
 
-.tooltip::after {
-    content: '';
+.tooltip::after { /* when the password box is hovered over/clicked */
+    content: ''; 
     position: absolute;
     top: 50%;
     left: -5px;
     transform: translateY(-50%);
     border-width: 5px;
     border-style: solid;
-    border-color: transparent #333 transparent transparent;
+    border-color: transparent #333 transparent transparent; 
 }
 
-/* Styling for the MFA boxes */
+/* Styling for the MFA checkboxes and labels on register page */
 
 .mfa_checkbox {
     color: white;
@@ -127,6 +127,8 @@ body {
     white-space: nowrap;
     font-size: 15px;
 }
+
+/* All the animations with the boxes shrinking and expanding when the page is loading, along with content fading in */
 
 @keyframes shrink1 {
     0% {
@@ -167,6 +169,14 @@ body {
     }
 }
 
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+/* Styling for the glass effect */
+
 .glass_container::before {
     content: '';
     position: absolute;
@@ -177,6 +187,9 @@ body {
     -webkit-backdrop-filter: blur(5px);
     z-index: -1;
 }
+
+
+/* Styling for the content within the glass container, mostly the same for all pages */
 
 .login_box, .register_box, .MFA_box, .MFA_setup_box {
     max-width: 250px;
@@ -201,7 +214,7 @@ body {
 }
 
 .mfa_button {
-    display: inline-block;
+    display: inline-block; /* Ensure the button is inline */
     padding: 10px 20px;
     color: white;
     text-align: center;
@@ -212,47 +225,41 @@ body {
 }
 
 .mfa_button:hover {
-    background-color: darkblue;
+    background-color: darkblue; /* Change background colour on hover, UX */
 }
 
-@keyframes fadeIn {
-    to {
-        opacity: 1;
-    }
-}
-
-h2 {
+h2 { /* Styling for the heading on each page */
     color: #fff;
     margin-top: 30px;
     margin-bottom: -10px;
 }
 
-form {
+form { /* Styling for the form with the input boxes in it */
     display: flex;
     flex-direction: column;
     margin-top: 20px;
 }
 
-input {
+input { /* Styling for the input boxes */
     padding: 10px;
     margin-top: 15px;
     width: 100%;
     border-radius: 10px;
-    background: transparent;
-    border: 1px solid #fff;
+    background: transparent; /* Transparent background, looks nicer */
+    border: 1px solid #fff; /* White border for good contrast */
     color: #fff;
     font-size: 13px;
 }
 
-input::placeholder {
+input::placeholder { /* Styling for the placeholder text */
     color: #fff;
 }
 
-input:focus {
+input:focus { /* Styling for the input boxes when they are focused */
     outline: none;
 }
 
-button {
+button { /* Styling for the login, register, etc buttons */
     background: #fff;
     color: black;
     padding: 10px;
@@ -262,7 +269,7 @@ button {
     margin-top: 15px;
 }
 
-button:hover {
+button:hover { /* Slight colour change on hover, improve UX */
     background: transparent;
     color: white;
     outline: 1px solid #fff;
@@ -274,7 +281,7 @@ p {
     margin-top: 15px;
 }
 
-#register, #login {
+#register, #login { /* Styling for the register and login links */
     text-decoration: none;
     color: #fff;
     font-weight: bold;
@@ -285,7 +292,7 @@ p {
     position: fixed;
     top: 20px;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%); /* Center the flashes */
     padding: 0; /* Remove padding from the ul */
     border-radius: 5px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -294,13 +301,13 @@ p {
     max-width: 80%;
 }
 
-.flashes li {
+.flashes li { 
     list-style: none;
     margin: 0;
     padding: 15px; /* Add padding to the li */
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: space-between; 
     border-radius: 5px; /* Add border-radius to the li */
 }
 
@@ -312,7 +319,7 @@ p {
     cursor: pointer;
 }
 
-.flashes .close:hover {
+.flashes .close:hover { /* Slight colour change on hover, improve UX */
     color: #bbb;
 }
 
@@ -327,14 +334,14 @@ p {
     color: white;
 }
 
-@media (max-width: 430px) { /* STYLED FOR AN IPHONE 14 PRO MAX */
+@media (max-width: 430px) { /* RESPONSIVELY STYLED FOR AN IPHONE 14 PRO MAX */
     .glass_container,
     .glass_container_login,
     .glass_container_register,
     .glass_container_mfa,
     .glass_container_mfa_setup {
         display: contents; /* Removes the container but keeps child elements visible */
-        width: 100vw;
+        width: 100vw; /* Ensure the container takes up the full width of the screen */
         
     }
 
@@ -360,7 +367,7 @@ p {
         font-size: 16px;
     }
 
-    h2 {
+    h2 { /* Styling for the heading on each page, brings it further up the page for better UI */
         position: absolute;
         top: 20%;
         left: 50%;
@@ -373,7 +380,7 @@ p {
         font-size: 20px;
     }
 
-    .flashes {
+    .flashes { /* Flash messages styling */
         top: 50px;
         left: 35%;
     }
