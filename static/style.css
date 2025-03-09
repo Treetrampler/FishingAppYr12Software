@@ -479,6 +479,17 @@ body {
     background-color: #0056b3;
 }
 
+.mfa_checkbox {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
+    margin-bottom: 20px;
+    margin-top: 20px;
+}
+
+#mfa {
+    margin-bottom: 10px;
+}
 
 /* Modal styling for javascript popups*/
 .modal {

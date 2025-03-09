@@ -65,6 +65,12 @@
                 <input type="text" id="username" name="username" value="{{ user_data[1] }}" required>
                 <label for="email">Email:</label>
                 <input type="text" id="email" name="email" value="{{ user_data[3] }}">
+                {% if not user_data[6] %}
+                    <div class="mfa_checkbox">
+                        <input type="checkbox" id="mfa" name="mfa">
+                        <label for="mfa">Activate MFA</label>
+                    </div>
+                {% endif %}
                 <button type="submit">Save Changes</button>
             </form>
         </div>

@@ -422,7 +422,6 @@ def profile():
             flash('A database error occurred. Please contact support.', 'error')
         finally:
             conn.close()
-
     return render_template('profile.html', user_data=user_data, user_posts=user_posts)
 
 @app.route('/upload_profile_image', methods=['POST'])
@@ -479,6 +478,8 @@ def edit_profile():
 
     email = clean(request.form.get('email'))
 
+    mfa_selected = 'mfa' in request.form
+
     with db_lock:
         try:
             safe_username = escape(username)
@@ -491,6 +492,13 @@ def edit_profile():
             conn.commit()
             flash('User info successfully updated!', 'success')
             log_user_activity("edited their profile", session['username'])
+
+            if mfa_selected:
+                session['pending_user'] = session['user_id']
+                cursor.execute('UPDATE user_sessions SET logout_time = CURRENT_TIMESTAMP, active = 0 WHERE user_id = ? AND active = 1', (session['user_id'],)) # records a user logout to prevent double logins when they verify mfa
+                conn.close()
+                return redirect('/setup_mfa')
+
         except sqlite3.IntegrityError:
             flash('A database integrity error occurred. Please try again.', 'error')
         except sqlite3.Error:
