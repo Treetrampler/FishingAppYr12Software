@@ -492,6 +492,7 @@ def edit_profile():
             conn.commit()
             flash('User info successfully updated!', 'success')
             log_user_activity("edited their profile", session['username'])
+            session['username'] = safe_username
 
             if mfa_selected:
                 session['pending_user'] = session['user_id']
