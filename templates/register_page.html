@@ -17,6 +17,7 @@
             <div class="input-container">
                 <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm Password *" required>
                 <span class="toggle-password" onclick="togglePasswordVisibility('confirm_password')">&#128065;</span>
+                <div class="tooltip" id="password-tooltip">For security, password must be over 6 characters</div>
             </div>
             <div class="input-container">
                 <input type="email" id="email" name="email" placeholder="Email">
@@ -40,6 +41,22 @@
             field.type = "password";
         }
     }
+
+    document.getElementById('password').addEventListener('focus', function() {
+        document.getElementById('password-tooltip').style.display = 'block';
+    });
+
+    document.getElementById('password').addEventListener('blur', function() {
+        document.getElementById('password-tooltip').style.display = 'none';
+    });
+
+    document.getElementById('password').addEventListener('mouseover', function() {
+        document.getElementById('password-tooltip').style.display = 'block';
+    });
+
+    document.getElementById('password').addEventListener('mouseout', function() {
+        document.getElementById('password-tooltip').style.display = 'none';
+    });
 </script>
 
 {% endblock %}
