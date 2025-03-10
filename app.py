@@ -979,21 +979,25 @@ def delete_user():
         return redirect('/login')
 
     user_id = request.form.get('user_id') #get the user id of the user being deleted
-
-    with db_lock:
-        try:
-            conn = sqlite3.connect('fishing_app.db')
-            cursor = conn.cursor()
-            cursor.execute('DELETE FROM user_data WHERE user_id = ?', (user_id,)) #delete the user from the database
-            conn.commit()
-            flash('User deleted successfully!', 'success') #let the user know it has worked
-            log_user_activity("deleted user", session['username']) #log the user activity
-        except sqlite3.IntegrityError:
-            flash('A database integrity error occurred. Please try again.', 'error')
-        except sqlite3.Error:
-            flash('A database error occurred. Please contact support.', 'error')
-        finally:
-            conn.close()
+    if str(user_id) == str(session['user_id']): #if the user is trying to delete themselves
+        flash('You cannot delete yourself.', 'error')
+        return redirect('/user_management')
+    else:
+        with db_lock:
+            try:
+                conn = sqlite3.connect('fishing_app.db')
+                cursor = conn.cursor()
+                cursor.execute('DELETE FROM user_data WHERE user_id = ?', (user_id,)) #delete the user from the database
+                cursor.execute('DELETE FROM posts WHERE user_id = ?', (user_id,)) #delete all the posts from the user
+                conn.commit()
+                flash('User deleted successfully!', 'success') #let the user know it has worked
+                log_user_activity("deleted user", session['username']) #log the user activity
+            except sqlite3.IntegrityError:
+                flash('A database integrity error occurred. Please try again.', 'error')
+            except sqlite3.Error:
+                flash('A database error occurred. Please contact support.', 'error')
+            finally:
+                conn.close()
 
     return redirect('/user_management')
 

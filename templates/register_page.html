@@ -9,15 +9,16 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> <!-- csrf token for security -->
             <div class="input-container">
                 <input type="text" id="username" name="username" placeholder="Username *" required>
+                <div class="username_tooltip" id="username-tooltip">Username must be 1-15 characters</div> <!-- tooltip, only appears when username container is hovered over/clicked, gives extra useful info (UX/UI feature) -->
             </div>
             <div class="input-container">
                 <input type="password" id="password" name="password" placeholder="Password *" required>
                 <span class="toggle-password" onclick="togglePasswordVisibility('password')">&#128065;</span> <!-- eye icon to toggle password visibility -->
+                <div class="password_tooltip" id="password-tooltip">For security, password must be at least 6 characters</div> <!-- tooltip, only appears when password container is hovered over/clicked, gives extra useful info (UX/UI feature) -->
             </div>
             <div class="input-container">
                 <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm Password *" required>
                 <span class="toggle-password" onclick="togglePasswordVisibility('confirm_password')">&#128065;</span>   <!-- eye icon to toggle password visibility -->
-                <div class="tooltip" id="password-tooltip">For security, password must be over 6 characters</div> <!-- tooltip, only appears when password container is hovered over/clicked, gives extra useful info (UX/UI feature) -->
             </div>
             <div class="input-container">
                 <input type="email" id="email" name="email" placeholder="Email">
@@ -43,6 +44,22 @@
     }
 
     // js for tooltip
+
+    document.getElementById('username').addEventListener('focus', function() {
+        document.getElementById('username-tooltip').style.display = 'block';
+    });
+
+    document.getElementById('username').addEventListener('blur', function() {
+        document.getElementById('username-tooltip').style.display = 'none';
+    });
+
+    document.getElementById('username').addEventListener('mouseover', function() {
+        document.getElementById('username-tooltip').style.display = 'block';
+    });
+
+    document.getElementById('username').addEventListener('mouseout', function() {
+        document.getElementById('username-tooltip').style.display = 'none';
+    });
 
     document.getElementById('password').addEventListener('focus', function() {
         document.getElementById('password-tooltip').style.display = 'block';

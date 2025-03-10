@@ -82,10 +82,10 @@ body {
 }
 
 /* Styling for the tooltip */
-.tooltip {
+.password_tooltip, .username_tooltip {
     display: none; /* Hide the tooltip by default */
     position: absolute; /* allows the tooltip to be positioned on top of stuff */
-    top: 50%;
+    top: 150%;
     left: 0;
     transform: translateY(-50%);
     background-color: #333;
@@ -96,7 +96,7 @@ body {
     z-index: 100; /* Ensure the tooltip appears above everything */
 }
 
-.tooltip::after { /* when the password box is hovered over/clicked */
+.password_tooltip::after, .username_tooltip::after { /* when the password box is hovered over/clicked */
     content: ''; 
     position: absolute;
     top: 50%;

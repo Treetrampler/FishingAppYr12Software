@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='login_style.css') }}">
     <title>Error</title>
 </head>
 <body>
-    <h1>Error</h1>
-    <p>{{ message }}</p> <!-- Display the error message -->
-    <a href="/">Go back to the homepage</a>
+    <h1 style="color: white; font-size: 100px;">Error</h1>
+    <p style="font-size: 20px; white-space: wrap; width: 80%; text-align: center;">{{ message }}</p> <!-- Display the error message -->
+    <a href="/" style="color: white; margin-top: 50px;">Go back to the homepage</a>
 </body>
 </html>
