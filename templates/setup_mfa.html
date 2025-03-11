@@ -4,7 +4,7 @@
 
 <div class="glass_container_mfa_setup glass_container"> <!-- inherits glass box class + its own class -->
     <div class="MFA_setup_box">
-        <h2>Scan QR Code</h2>
+        <h2 class="setup_mfa_title">Scan QR Code</h2>
         <img src="{{ qr_path }}" alt="QR Code"> <!-- qr_path is passed from the view -->
         <p>Scan with Microsoft Authenticator and enter the 6-digit code at login.</p>
         <a href="{{ url_for('verify_mfa') }}" class="mfa_button">Continue</a> <!-- links to verify page, next step in mfa -->

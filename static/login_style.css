@@ -355,6 +355,11 @@ p {
         left: 5%;
     }
 
+    .setup_mfa_title { /* Styling for the title on the MFA setup page */
+        position: absolute;
+        top: 10%; /* Position the title further up the page than normal to stop it getting in the way of qr code */
+    }
+
     input {
         width: 100%; /* Ensure input boxes take the full width */
         padding: 15px;

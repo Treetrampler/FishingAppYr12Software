@@ -310,9 +310,8 @@ body {
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     text-align: center;
-    min-width: 175px;
-    max-width: 300px; /* Cap the maximum width */
-    max-height: 200px; /* Cap the maximum height */
+    width: 175px;
+    height: 130px; /* Cap the maximum height */
     overflow: hidden; /* Hide overflow content */
     display: flex;
     flex-direction: column;
@@ -837,7 +836,8 @@ form button:hover { /* Change background color on hover, UX improvement */
     }
  
     .fish_card { 
-        min-width: 145px; /* Adjust the minimum width of the fish cards, slightly smaller now */
+        width: 145px; /* Adjust the minimum width of the fish cards, slightly smaller now */
+        height: 140px; /* Adjust the maximum height of the fish cards, slightly smaller now */
     }
 
     .hidden_info { /* Show hidden information on small screens */
