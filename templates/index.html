@@ -36,6 +36,8 @@
                     </div>
                     <img src="{{ url_for('static', filename=post[0]) }}" alt="Post Image" class="post_image">
                     <div class="post_footer">
+                        <i class="fa-heart {{ 'fas' if (session['user_id'] in likes_dict[post[4]])  else 'far' }} like-icon" onclick="toggleLike('{{ post[4] }}')"></i> <!-- Add a heart icon that toggles based on whether it is true -->
+                        <span class="like-count">{{ likes_dict[post[4]]|length }}</span> <!-- Display the number of likes -->
                         <p>{{ post[1] }}</p>
                     </div>
                 </div>
@@ -50,11 +52,11 @@
         function openCreatePostModal() {
             document.getElementById('createPostModal').style.display = 'block';
         }
-
+    
         function closeCreatePostModal() {
             document.getElementById('createPostModal').style.display = 'none';
         }
-
+    
         // Function to preview the image that the user has selected for their post
         function previewPostImage(event) {
             const reader = new FileReader();
@@ -65,7 +67,35 @@
             };
             reader.readAsDataURL(event.target.files[0]);
         }
-    </script>
+    
+        // Function to toggle like/unlike
+        function toggleLike(postId) {
+            const likeIcon = event.target;
+            const isLiked = likeIcon.classList.contains('fas');
+            const url = isLiked ? `/unlike_post/${postId}` : `/like_post/${postId}`;
+    
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    likeIcon.classList.toggle('fas');
+                    likeIcon.classList.toggle('far');
+                    const likeCountSpan = likeIcon.nextElementSibling;
+                    let likeCount = parseInt(likeCountSpan.textContent);
+                    likeCountSpan.textContent = isLiked ? likeCount - 1 : likeCount + 1;
+                } else {
+                    alert(data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>  
 </div>
 
 {% endblock %}

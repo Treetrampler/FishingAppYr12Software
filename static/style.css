@@ -229,8 +229,8 @@ body {
 }
 
 .post_footer { /* Styling for the post footer that contains the caption */
-    display: flex;
-    flex-direction: column; /* Change to column to allow text to wrap */
+    display: inline-flex;
+    flex-direction: row; /* Change to column to allow text to wrap */
     align-items: flex-start; /* Align items to the start */
     justify-content: left;
     /* background-color: #EFFBFE; */
@@ -246,9 +246,9 @@ body {
     margin: 0; /* Remove default margin */
     word-wrap: break-word; /* Ensure long words break to the next line */
     width: 90%; /* Ensure the paragraph takes the full width */
-    margin: 0;
+    margin-top: 30px;
     flex-grow: 1;
-    padding-left: 20px;
+    margin-left: -45px;
     font-size: 20px;
 }
 
@@ -259,6 +259,29 @@ body {
     margin-right: 10px;
     margin-left: 10px;
     object-fit: contain;
+}
+
+.like-icon {
+    margin-left: 20px;
+    margin-bottom: 10px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #ccc;
+    transition: color 0.3s;
+}
+
+.like-icon.fas {
+    color: red;
+}
+
+.like-icon:hover {
+    color: #ff6666;
+}
+
+.like-count {
+    margin-left: 10px;
+    font-size: 18px;
+    vertical-align: middle;
 }
 
 /* CSS STYLING FOR THE FISH IDENTIFIER AI */

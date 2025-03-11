@@ -129,6 +129,13 @@ def init_db(): #initialises the database with all 4 tables
         active INTEGER DEFAULT 1,
         FOREIGN KEY(user_id) REFERENCES user_data(user_id))
         ''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS likes 
+        (like_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        post_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        FOREIGN KEY(post_id) REFERENCES posts(post_id),
+        FOREIGN KEY(user_id) REFERENCES user_data(user_id))
+        ''')
         conn.commit()
     except sqlite3.IntegrityError:
         flash('A database integrity error occurred. Please try again.', 'error')
@@ -177,12 +184,23 @@ atexit.register(lambda: scheduler.shutdown())
 @limiter.exempt #exempts the home page from the rate limiter, as non logged in users can still access this page
 @app.route('/') #the main page, creates the home page
 def index():
+    posts = []
+    likes_dict = {}
     with db_lock: #prevent race conditions
         try:
             conn = sqlite3.connect('fishing_app.db')
             cursor = conn.cursor()
-            cursor.execute('SELECT posts.image_path, posts.caption, user_data.username, user_data.profile_image_path FROM posts JOIN user_data ON posts.user_id = user_data.user_id ORDER BY posts.post_id DESC LIMIT 20')
+            cursor.execute('SELECT posts.image_path, posts.caption, user_data.username, user_data.profile_image_path, posts.post_id FROM posts JOIN user_data ON posts.user_id = user_data.user_id ORDER BY posts.post_id DESC LIMIT 20')
             posts = cursor.fetchall() #get all the post data from the database
+            cursor.execute('SELECT post_id, user_id FROM likes')
+            likes_data = cursor.fetchall() #get all the like data from the database
+            likes_dict = {} #initialise a dictionary to store the likes data
+            for post_id, user_id in likes_data: #for each like, add it to the dictionary
+                if post_id not in likes_dict: #if the post id is not in the dictionary
+                    likes_dict[post_id] = [] #initialise the post id in the dictionary
+                likes_dict[post_id].append(user_id) #add the user id to the post id in the dictionary
+            
+            print(likes_dict)
             admin = 0 #set admin to 0 by default
 
             if 'user_id' in session: #if user is logged in 
@@ -202,7 +220,7 @@ def index():
         session['admin'] = True #initialise an admin session
         return render_template('admin_home.html') #redirect them to the admin home page instead of the user home page
     else: #if the user is not an admin
-        return render_template('index.html', posts=posts) #send them to the normal home page, pass the post data
+        return render_template('index.html', posts=posts, likes_dict = likes_dict) #send them to the normal home page, pass the post data
 
 @app.route('/login', methods=['POST', 'GET']) # login page function
 @limiter.limit("10 per minute") #prevents brute force login attacks
@@ -397,13 +415,14 @@ def verify_mfa():
                 conn.close()
     return render_template("verify_mfa.html")
 
-@app.route('/profile') #function to display the user profile
+@app.route('/profile')
 def profile():
-    if 'user_id' not in session: # if the user is not logged in
+    if 'user_id' not in session:  # if the user is not logged in
         return redirect('/login')
-    #intiialise user data and posts just in case db fails
-    user_data = [] 
+
+    user_data = []
     user_posts = []
+    likes_dict = {}
 
     with db_lock:
         try:
@@ -415,8 +434,18 @@ def profile():
             user_data = cursor.fetchone()
 
             # Fetch user posts
-            cursor.execute('SELECT posts.post_id, posts.image_path, posts.caption, user_data.username, user_data.profile_image_path FROM posts JOIN user_data ON posts.user_id = user_data.user_id WHERE posts.user_id = ?', (session['user_id'],))
+            cursor.execute('SELECT posts.post_id, posts.image_path, posts.caption, user_data.username, user_data.profile_image_path FROM posts JOIN user_data ON posts.user_id = user_data.user_id WHERE posts.user_id = ? ORDER BY posts.post_id DESC', (session['user_id'],))
             user_posts = cursor.fetchall()
+
+            # Fetch likes data
+            cursor.execute('SELECT post_id, user_id FROM likes')
+            likes_data = cursor.fetchall()
+
+            # Process likes data into a dictionary
+            for post_id, user_id in likes_data:
+                if post_id not in likes_dict:
+                    likes_dict[post_id] = []
+                likes_dict[post_id].append(user_id)
 
         except sqlite3.IntegrityError:
             flash('A database integrity error occurred. Please try again.', 'error')
@@ -424,7 +453,8 @@ def profile():
             flash('A database error occurred. Please contact support.', 'error')
         finally:
             conn.close()
-    return render_template('profile.html', user_data=user_data, user_posts=user_posts) # display the profile page with the user data and posts
+
+    return render_template('profile.html', user_data=user_data, user_posts=user_posts, likes_dict=likes_dict)
 
 @app.route('/upload_profile_image', methods=['POST']) #function to upload a profile image
 def upload_profile_image():
@@ -1000,6 +1030,45 @@ def delete_user():
                 conn.close()
 
     return redirect('/user_management')
+
+@app.route('/like_post/<int:post_id>', methods=['POST'])
+def like_post(post_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Please log in to like posts!'}), 401
+    
+    else:
+        user_id = session['user_id']
+        with db_lock:
+            try:
+                conn = sqlite3.connect('fishing_app.db')
+                cursor = conn.cursor()
+                cursor.execute('INSERT INTO likes (post_id, user_id) VALUES (?, ?)', (post_id, user_id))
+                conn.commit()
+                return jsonify({'success': True})
+            except sqlite3.IntegrityError:
+                return jsonify({'error': 'Already liked'}), 400
+            except sqlite3.Error:
+                return jsonify({'error': 'Database error'}), 500
+            finally:
+                conn.close()
+
+@app.route('/unlike_post/<int:post_id>', methods=['POST'])
+def unlike_post(post_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    user_id = session['user_id']
+    with db_lock:
+        try:
+            conn = sqlite3.connect('fishing_app.db')
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM likes WHERE post_id = ? AND user_id = ?', (post_id, user_id))
+            conn.commit()
+            return jsonify({'success': True})
+        except sqlite3.Error:
+            return jsonify({'error': 'Database error'}), 500
+        finally:
+            conn.close()
 
 if __name__ == '__main__':
     app.run(debug=True, ssl_context=('certs/cert.pem', 'certs/key.pem'), host="0.0.0.0", port=443) #run the app on port 443 with ssl, debug mode on for testing purposes

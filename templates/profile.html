@@ -1,32 +1,31 @@
 {% extends 'main_layout.html' %}
 
-{% block body%}
+{% block body %}
 <div id="content">
     <div class="profile_container"> 
-        <div class="profile_header"> <!-- div for the header content -->
-            <div class="profile_image_wrapper" onclick="openProfileImageModal()"> <!-- div for the profile image -->
-                <img src="{{ url_for('static', filename=user_data[5] or 'images/blank_profile_pic.png') }}" class="profile_image" id="profileImage" alt="Profile Picture"> <!-- profile image if one exists, else the default blank pic -->
-                <div class="profile_overlay"> <!-- div for the overlay content, will appear when the profile pic is hovered over -->
-                    <ion-icon name="camera-outline"></ion-icon> <!-- icon for the camera, will appear when the profile pic is hovered over -->
+        <div class="profile_header">
+            <div class="profile_image_wrapper" onclick="openProfileImageModal()">
+                <img src="{{ url_for('static', filename=user_data[5] or 'images/blank_profile_pic.png') }}" class="profile_image" id="profileImage" alt="Profile Picture">
+                <div class="profile_overlay">
+                    <ion-icon name="camera-outline"></ion-icon>
                 </div>
             </div>
-            <div class="profile_details"> <!-- div for the profile details -->
+            <div class="profile_details">
                 <h1>{{ user_data[1] }}</h1>
-                <button class="edit_profile_btn" onclick="openEditProfileModal()">Edit Profile</button> <!-- button to edit the profile, opens the modal form -->
+                <button class="edit_profile_btn" onclick="openEditProfileModal()">Edit Profile</button>
             </div>
         </div>
-        <h3>--- Posts <span class="hidden_info">- Tap to Edit </span>---</h3> <!-- header for the posts, the hidden "Tap to Edit" 
-        appears in mobile view to make it more obvious as users cannot hover over posts on mobile, meaning the edit + delete buttons wont appear unless clicked -->
+        <h3>--- Posts <span class="hidden_info">- Tap to Edit </span>---</h3>
     </div>
     <div class="posts">
         {% for post in user_posts %}
-            <div class="post"> <!-- same post styling as the home page -->
-                <div class="post_overlay"> <!-- div for the overlay content, will appear when the post is hovered over/tapped on mobile -->
+            <div class="post">
+                <div class="post_overlay">
                     <button class="edit_post_btn" onclick="openEditPostModal('{{ post[0] }}', '{{ post[2] }}')">Edit</button>
                     <button class="delete_post_btn" onclick="openDeletePostModal('{{ post[0] }}')">Delete</button>
                 </div>
                 <div class="post_header">
-                    {% if post[4] %} <!-- if the user has a profile image, display it, else display the default blank pic -->
+                    {% if post[4] %}
                         <img src="{{ url_for('static', filename=post[4]) }}" alt="Profile Image" class="post_profile_image">
                     {% else %}
                         <img src="{{ url_for('static', filename='/images/blank_profile_pic.png') }}" alt="Profile Image" class="post_profile_image">
@@ -35,6 +34,10 @@
                 </div>
                 <img src="{{ url_for('static', filename=post[1]) }}" alt="Post Image" class="post_image">
                 <div class="post_footer">
+                    <div class="like-container">
+                        <i class="fa-heart {{ 'fas' if (session['user_id'] in likes_dict[post[0]]) else 'far' }} like-icon" onclick="toggleLike('{{ post[0] }}')"></i>
+                        <span class="like-count">{{ likes_dict[post[0]]|length }}</span>
+                    </div>
                     <p>{{ post[2] }}</p>
                 </div>
             </div>
@@ -48,8 +51,8 @@
             <h2>Upload Profile Picture</h2>
             <form id="profileImageForm" action="{{ url_for('upload_profile_image') }}" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input type="file" id="profileImageInput" name="profile_image" accept="image/*" onchange="previewProfileImage(event)" required> <!-- input for the profile pic, triggers profile image preview js when uploaded -->
-                <img id="profileImagePreview" src="#" alt="Profile Image Preview" style="display: none; margin-top: 10px; margin-bottom: 10px; max-width: 100%; border-radius: 50%;"> <!-- profile pic preview, hidden by default -->
+                <input type="file" id="profileImageInput" name="profile_image" accept="image/*" onchange="previewProfileImage(event)" required>
+                <img id="profileImagePreview" src="#" alt="Profile Image Preview" style="display: none; margin-top: 10px; margin-bottom: 10px; max-width: 100%; border-radius: 50%;">
                 <button type="submit">Upload</button>
             </form>
         </div>
@@ -66,7 +69,7 @@
                 <input type="text" id="username" name="username" value="{{ user_data[1] }}" required>
                 <label for="email">Email:</label>
                 <input type="text" id="email" name="email" value="{{ user_data[3] }}">
-                {% if not user_data[6] %} <!-- if the user does not have MFA enabled, display the MFA checkbox -->
+                {% if not user_data[6] %}
                     <div class="mfa_checkbox">
                         <input type="checkbox" id="mfa" name="mfa">
                         <label for="mfa">Activate MFA</label>
@@ -106,7 +109,8 @@
         </div>
     </div>
 
-    <script> // JS for all the modal form opening and closing + profile image preview
+    <script>
+        // JS for all the modal form opening and closing + profile image preview
         function openProfileImageModal() {
             document.getElementById('profileImageModal').style.display = 'block';
         }
@@ -150,6 +154,34 @@
 
         function closeDeletePostModal() {
             document.getElementById('deletePostModal').style.display = 'none';
+        }
+
+        // Function to toggle like/unlike
+        function toggleLike(postId) {
+            const likeIcon = event.target;
+            const isLiked = likeIcon.classList.contains('fas');
+            const url = isLiked ? `/unlike_post/${postId}` : `/like_post/${postId}`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    likeIcon.classList.toggle('fas');
+                    likeIcon.classList.toggle('far');
+                    const likeCountSpan = likeIcon.nextElementSibling;
+                    let likeCount = parseInt(likeCountSpan.textContent);
+                    likeCountSpan.textContent = isLiked ? likeCount - 1 : likeCount + 1;
+                } else {
+                    alert(data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
         }
     </script>
 </div>
