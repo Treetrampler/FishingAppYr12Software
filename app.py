@@ -517,19 +517,23 @@ def edit_profile():
             safe_email = escape(email)
             conn = sqlite3.connect('fishing_app.db')
             cursor = conn.cursor()
-            print('runnning db')
-            print(session['user_id'])
-            cursor.execute('UPDATE user_data SET username = ?, email = ? WHERE user_id = ?', (safe_username, safe_email, session['user_id'])) #update all the user data to the new stuff
-            conn.commit()
-            flash('User info successfully updated!', 'success')
-            log_user_activity("edited their profile", session['username']) # log it
-            session['username'] = safe_username
+            cursor.execute('SELECT COUNT(*) FROM user_data WHERE username = ? AND user_id != ?', (safe_username, session['user_id'])) #check if the username already exists
+            user_exists = cursor.fetchone()[0] > 0
+            if user_exists:
+                flash('Username already exists.', 'error')
+                return redirect('/profile')
+            else:
+                cursor.execute('UPDATE user_data SET username = ?, email = ? WHERE user_id = ?', (safe_username, safe_email, session['user_id'])) #update all the user data to the new stuff
+                conn.commit()
+                flash('User info successfully updated!', 'success')
+                log_user_activity("edited their profile", session['username']) # log it
+                session['username'] = safe_username
 
-            if mfa_selected: # if they have enabled mfa
-                session['pending_user'] = session['user_id'] # initialise the pending user session
-                cursor.execute('UPDATE user_sessions SET logout_time = CURRENT_TIMESTAMP, active = 0 WHERE user_id = ? AND active = 1', (session['user_id'],)) # records a user logout to prevent double logins when they verify mfa
-                conn.close()
-                return redirect('/setup_mfa') #sends them to the setup mfa page
+                if mfa_selected: # if they have enabled mfa
+                    session['pending_user'] = session['user_id'] # initialise the pending user session
+                    cursor.execute('UPDATE user_sessions SET logout_time = CURRENT_TIMESTAMP, active = 0 WHERE user_id = ? AND active = 1', (session['user_id'],)) # records a user logout to prevent double logins when they verify mfa
+                    conn.close()
+                    return redirect('/setup_mfa') #sends them to the setup mfa page
 
         except sqlite3.IntegrityError:
             flash('A database integrity error occurred. Please try again.', 'error')
