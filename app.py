@@ -933,7 +933,7 @@ def wipe_fishdex():
         flash('Please login to access this method.', 'error')
         return redirect('/')
 
-    username = request.form['username'] #get the username of the user to wipe the fishdex data for
+    username = clean(request.form['username']) #get the username of the user to wipe the fishdex data for
     with db_lock:
         try:
             conn = sqlite3.connect('fishing_app.db')
