@@ -1037,10 +1037,10 @@ def delete_user():
 
 @app.route('/like_post/<int:post_id>', methods=['POST'])
 def like_post(post_id):
-    if 'user_id' not in session:
-        return jsonify({'error': 'Please log in to like posts!'}), 401
+    if 'user_id' not in session: #if the user is not logged in, they can like the post but it wont go to the database
+        return jsonify({'success': True})
     
-    else:
+    else: #if the user is actually logged in, their like will be registered to the database
         user_id = session['user_id']
         with db_lock:
             try:
@@ -1058,21 +1058,21 @@ def like_post(post_id):
 
 @app.route('/unlike_post/<int:post_id>', methods=['POST'])
 def unlike_post(post_id):
-    if 'user_id' not in session:
-        return jsonify({'error': 'Unauthorized'}), 401
-
-    user_id = session['user_id']
-    with db_lock:
-        try:
-            conn = sqlite3.connect('fishing_app.db')
-            cursor = conn.cursor()
-            cursor.execute('DELETE FROM likes WHERE post_id = ? AND user_id = ?', (post_id, user_id))
-            conn.commit()
-            return jsonify({'success': True})
-        except sqlite3.Error:
-            return jsonify({'error': 'Database error'}), 500
-        finally:
-            conn.close()
+    if 'user_id' not in session: #same as liking a post
+        return jsonify({'success': True})
+    else:
+        user_id = session['user_id']
+        with db_lock:
+            try:
+                conn = sqlite3.connect('fishing_app.db')
+                cursor = conn.cursor()
+                cursor.execute('DELETE FROM likes WHERE post_id = ? AND user_id = ?', (post_id, user_id))
+                conn.commit()
+                return jsonify({'success': True})
+            except sqlite3.Error:
+                return jsonify({'error': 'Database error'}), 500
+            finally:
+                conn.close()
 
 if __name__ == '__main__':
     app.run(debug=True, ssl_context=('certs/cert.pem', 'certs/key.pem'), host="0.0.0.0", port=443) #run the app on port 443 with ssl, debug mode on for testing purposes
