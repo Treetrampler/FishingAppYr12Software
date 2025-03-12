@@ -2,14 +2,16 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Fishing App</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-        <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
-        <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Necessary for responsive design -->
+        <title>Fishing App</title> <!-- Title of website -->
+        <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon"> <!-- Link to favicon, displayed next to title of page -->
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"> <!-- Link to CSS styling page -->
+        <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script> <!-- Link to Ionicons used for nav bar styling -->
+        <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script> <!-- Link to Ionicons used for nav bar styling -->
     </head>
     <body>
         <div class="container">
+            <!-- Setting up the flashes -->
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     <ul class="flashes">
@@ -19,6 +21,7 @@
                     </ul>
                 {% endif %}
             {% endwith %}
+            <!-- Admin navbar display -->
             <div id="sidebar">
                 <h1>Admin View</h1>
                 <ul>
@@ -55,10 +58,12 @@
                 </ul>
             </div>
             <div id="content">
+                <!-- the content in the pages will be put into the block body -->
                 {% block body %}
                 {% endblock %}
             </div>        
         </div>
+        <!-- Javascript for flashes -->
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const closeButtons = document.querySelectorAll('.flashes .close');

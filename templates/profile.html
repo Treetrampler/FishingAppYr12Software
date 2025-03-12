@@ -1,8 +1,8 @@
 {% extends 'main_layout.html' %}
 
-{% block body%}
+{% block body %}
 <div id="content">
-    <div class="profile_container">
+    <div class="profile_container"> 
         <div class="profile_header">
             <div class="profile_image_wrapper" onclick="openProfileImageModal()">
                 <img src="{{ url_for('static', filename=user_data[5] or 'images/blank_profile_pic.png') }}" class="profile_image" id="profileImage" alt="Profile Picture">
@@ -32,8 +32,12 @@
                     {% endif %}
                     <h4>{{ post[3] }}</h4>
                 </div>
-                <img src="{{ url_for('static', filename=post[1]) }}" alt="Post Image">
+                <img src="{{ url_for('static', filename=post[1]) }}" alt="Post Image" class="post_image">
                 <div class="post_footer">
+                    <div class="like-container">
+                        <i class="fa-heart {{ 'fas' if (session['user_id'] in likes_dict[post[0]]) else 'far' }} like-icon" onclick="toggleLike('{{ post[0] }}')"></i>
+                        <span class="like-count">{{ likes_dict[post[0]]|length }}</span>
+                    </div>
                     <p>{{ post[2] }}</p>
                 </div>
             </div>
@@ -48,7 +52,7 @@
             <form id="profileImageForm" action="{{ url_for('upload_profile_image') }}" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="file" id="profileImageInput" name="profile_image" accept="image/*" onchange="previewProfileImage(event)" required>
-                <img id="profileImagePreview" src="#" alt="Profile Image Preview" style="display: none; margin-top: 10px; margin-bottom: 10px; max-width: 100%;">
+                <img id="profileImagePreview" src="#" alt="Profile Image Preview" style="display: none; margin-top: 10px; margin-bottom: 10px; max-width: 100%; border-radius: 50%;">
                 <button type="submit">Upload</button>
             </form>
         </div>
@@ -64,7 +68,13 @@
                 <label for="username">Username: *</label>
                 <input type="text" id="username" name="username" value="{{ user_data[1] }}" required>
                 <label for="email">Email:</label>
-                <input type="text" id="email" name="email" value="{{ user_data[3] }}" required>
+                <input type="text" id="email" name="email" value="{{ user_data[3] }}">
+                {% if not user_data[6] %}
+                    <div class="mfa_checkbox">
+                        <input type="checkbox" id="mfa" name="mfa">
+                        <label for="mfa">Activate MFA</label>
+                    </div>
+                {% endif %}
                 <button type="submit">Save Changes</button>
             </form>
         </div>
@@ -100,6 +110,7 @@
     </div>
 
     <script>
+        // JS for all the modal form opening and closing + profile image preview
         function openProfileImageModal() {
             document.getElementById('profileImageModal').style.display = 'block';
         }
@@ -143,6 +154,34 @@
 
         function closeDeletePostModal() {
             document.getElementById('deletePostModal').style.display = 'none';
+        }
+
+        // Function to toggle like/unlike
+        function toggleLike(postId) {
+            const likeIcon = event.target;
+            const isLiked = likeIcon.classList.contains('fas');
+            const url = isLiked ? `/unlike_post/${postId}` : `/like_post/${postId}`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    likeIcon.classList.toggle('fas');
+                    likeIcon.classList.toggle('far');
+                    const likeCountSpan = likeIcon.nextElementSibling;
+                    let likeCount = parseInt(likeCountSpan.textContent);
+                    likeCountSpan.textContent = isLiked ? likeCount - 1 : likeCount + 1;
+                } else {
+                    alert(data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
         }
     </script>
 </div>

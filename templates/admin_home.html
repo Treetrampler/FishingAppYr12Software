@@ -4,16 +4,31 @@
 
 <h1>Admin Dashboard</h1>
 
-<!-- Canvas element for the line chart -->
-<div id="chart-container">
-    <canvas id="loggedInUsersChart"></canvas>
+<div id="admin_home_container">
+    <!-- Navigation Buttons -->
+    <div class="admin-buttons">
+        <a href="{{ url_for('user_management') }}" class="admin-button">User Management</a>
+        <a href="{{ url_for('post_management') }}" class="admin-button">Post Management</a>
+        <a href="{{ url_for('fishdex_management') }}" class="admin-button">Dex Management</a>
+        <a href="{{ url_for('download_log') }}" class="admin-button">Download Log</a>
+    </div>
+
+    <!-- Canvas element for the line chart of logged in users -->
+    <div id="chart-container">
+        <canvas id="loggedInUsersChart"></canvas>
+    </div>
+    
 </div>
+
+
+
 
 <!-- Include Chart.js and time adapter -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 
-<script>
+<!-- Here is the script for the logged in users chart -->
+<script> 
     let chart;
 
     function fetchDataAndUpdateChart() {
@@ -35,7 +50,11 @@
                 return;
             }
 
-            new Chart(ctx, {
+            if (chart) {
+                chart.destroy(); // Destroy the previous chart instance if it exists
+            }
+
+            chart = new Chart(ctx, { // chart config stuff
                 type: 'line',
                 data: {
                     labels: timestamps,
@@ -76,7 +95,7 @@
                 }
             });
         })
-        .catch(error => console.error('Error fetching logged in users data:', error));
+        .catch(error => console.error('Error fetching logged in users data:', error)); // if an error arises, log it to the console
     }
 
     // Fetch data and update chart every 30 seconds
@@ -85,6 +104,5 @@
     // Initial fetch
     fetchDataAndUpdateChart();
 </script>
-
 
 {% endblock %}

@@ -7,71 +7,38 @@ body {
     height: 100%;
     width: 100%;
     overflow-x: hidden; /* Prevent horizontal scrollbar */
-    background-image: url('images/main_page_background_1.jpg');
+    background-image: url('images/main_page_background_1.jpg'); /* Set the background image */
     background-repeat: no-repeat;
     background-size: cover;
-    background-color: rgba(255,255,255,0.3);
+    background-color: rgba(255,255,255,0.3); /* Add a light overlay, decrease opacity of the background image (improve UI as it was slightly too powerful) */
     background-blend-mode: lighten;
     padding-bottom: 100px;
-}
-
-/* CSS STYLING FOR THE LOGIN + REGISTER PAGES */
-
-#login_wrapper {
-    width: 30%;
-    border: 1px solid black;
-    margin: 15% auto;
-    padding: 30px 20px;
-}
-
-#login_wrapper h1{
-    text-align:center;
-}
-
-.login_form {
-    margin: 0 auto;
-}
-
-.login_form ul{
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    text-align: center;
-}
-
-.login_form li{
-    padding: 5px 0;
-}
-
-.register_button{
-    text-decoration: none;
-    color: black;
 }
 
 /* CSS STYLING FOR THE MAIN TEMPLATE - THE SIDEBAR + NAV */
 
 #sidebar {
-    width: clamp(150px, 20%, 300px);
-    height: 100%;
+    width: clamp(150px, 20%, 300px); /* Set a minimum width of 150px and a maximum width of 300px, makes it responsive to different size laptops */
+    height: 100%; /* Sidebar spans the full height */
     position: fixed;
     top: 0;
     left: 0;
     border: 1px solid black;
     padding: 25px;
-    background-image: url('images/background-login-image-6.jpg');
+    background-image: url('images/background-login-image-6.jpg'); /* Set the background image, consistent with login page for improved UI */
     background-repeat: no-repeat;
     background-size: cover;
     background-color: rgba(255,255,255,0.2);
     background-blend-mode: lighten;
 }
 
-#sidebar h1 {
+#sidebar h1 { /* Styling for the sidebar header that says CATCH */
     color: white;
     text-align: center;
     font-size: 45px;
 }
 
-#sidebar ul {
+#sidebar ul { /* Styling for the sidebar list */
     list-style: none;
     margin: 0;
     padding: 0;
@@ -82,7 +49,7 @@ body {
     padding: 0; /* Remove padding from the li */
     margin-bottom: 10px; /* Add some space between the items */
     opacity: 0; /* Start with the list items hidden */
-    animation: fadeIn 0.5s ease forwards; /* Apply fade-in animation */
+    animation: fadeIn 0.5s ease forwards; /* Apply fade-in animation, improves UX */
 }
 
 #sidebar li:nth-child(1) {
@@ -188,7 +155,7 @@ body {
     border-radius: 5px; /* Add border-radius to the li */
 }
 
-.flashes .close {
+.flashes .close { /* Styling for the close button */
     margin-left: 15px;
     color: white;
     font-size: 20px;
@@ -214,93 +181,116 @@ body {
 /* Style the posts */
 .posts {
     width: 100%;
-    max-width: 750px; /* Limit the width of the posts */
+    max-width: 600px; /* Limit the width of the posts */
 }
 
-.post {
-    position: relative;
+.post { /* Styling for each post */
+    position: relative; /* Ensure the content is positioned relative to the post */
     background-color: #fff;
     padding: 0;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 5px; /* Adds softer edges for UI */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Add a subtle shadow, UI improvement */
     margin-top: 20px;
     text-align: center;
 }
 
-.post img {
-    max-width: 100%;
-    max-height: 300px;
+.post_image {
+    width: 100%;
     height: auto;
-    object-fit: contain;
-    margin-top: 5px;
+    max-height: 600px; /* Limit the height of the image just incase excessively tall image uploaded */
+    height: auto;
+    object-fit: contain; /* Ensure the image fits within the area */
+    margin-bottom: -3.5px;
 }
 
-.post p {
-    margin: 0;
-    text-align: center;
-    flex-grow: 1;
-    padding-left: 20px;
-    font-size: 20px;
-}
-
-.posts h2 {
+.posts h2 { /* Styling for the thing that says No Posts Yet  */
     text-align: center;
     vertical-align: center;
     margin-top: 50px;
     font-size: 30px;
 }
 
-.post h4 {
+.post h4 { /* Styling for the username in the post */
     text-align: center;
     vertical-align: center;
     font-size: 22px;
     margin: 0;
 }
 
-.post_header {
+.post_header { /* Styling for the post header that contains the profile pic and username */
     display: flex;
     align-items: center;
     justify-content: left;
-    background-color: #EFFBFE;
-    border-radius: 10px 10px 0 0;
+    /* background-color: #EFFBFE; */
+    border-radius: 5px 5px 0 0;
     padding-top: 10px;
     padding-bottom: 5px;
+    border: solid 1px lightgrey;
 }
 
-.post_footer {
-    display: flex;
-    flex-direction: column; /* Change to column to allow text to wrap */
+.post_footer { /* Styling for the post footer that contains the caption */
+    display: inline-flex;
+    flex-direction: row; /* Change to column to allow text to wrap */
     align-items: flex-start; /* Align items to the start */
     justify-content: left;
-    background-color: #EFFBFE;
-    border-radius: 0 0 10px 10px;
+    /* background-color: #EFFBFE; */
+    border-radius: 0 0 5px 5px;
     padding: 10px;
     width: 100%; /* Ensure the footer takes the full width */
     box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    border: solid 1px lightgrey;
 }
 
-.post_footer p {
+.post_footer p { /* Styling for the caption */
     text-align: left;
     margin: 0; /* Remove default margin */
     word-wrap: break-word; /* Ensure long words break to the next line */
     width: 90%; /* Ensure the paragraph takes the full width */
+    margin-top: 30px;
+    flex-grow: 1;
+    margin-left: -45px;
+    font-size: 20px;
 }
 
-.post_profile_image {
+.post_profile_image { /* Styling for the profile image in the post */
     width: 40px;
-    height: 20px;
+    height: 40px;
     border-radius: 50%;
     margin-right: 10px;
     margin-left: 10px;
+    object-fit: contain;
+}
+
+.like-icon {
+    margin-left: 20px;
+    margin-bottom: 10px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #ccc;
+    transition: color 0.3s;
+}
+
+.like-icon.fas {
+    color: red;
+}
+
+.like-icon:hover {
+    color: #ff6666;
+}
+
+.like-count {
+    margin-left: 10px;
+    font-size: 18px;
+    vertical-align: middle;
 }
 
 /* CSS STYLING FOR THE FISH IDENTIFIER AI */
 
-.fish_ai_insert {
+.fish_ai_insert { 
     position: absolute;
     top: 0;
     left: clamp(150px, 25%, 300px); /* Leaves space for the sidebar */
-    width: calc(100% - clamp(150px, 25%, 300px)); /* Prevents overlap with the sidebar */
+    width: calc(100% - clamp(150px, 25%, 300px)); /* Prevents it being too wide for the section */
     height: 100%;
 }
 
@@ -315,13 +305,13 @@ body {
     max-width: calc(100% - clamp(150px, 20%, 300px)); /* Ensure they do not overlap the sidebar */
 }
 
-.fish_card {
+.fish_card { /* Styling for each fish card */
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     text-align: center;
-    max-width: 300px; /* Cap the maximum width */
-    max-height: 200px; /* Cap the maximum height */
+    width: 175px;
+    height: 130px; /* Cap the maximum height */
     overflow: hidden; /* Hide overflow content */
     display: flex;
     flex-direction: column;
@@ -329,13 +319,13 @@ body {
     background: rgba(255, 255, 255, 0.5);
 }
 
-.fish_card:hover {
+.fish_card:hover { /* Change background and add shadow on hover, improve UX */
     background: rgba(255, 255, 255, 0.8);
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
     transition: background 0.3s, box-shadow 0.3s;
 }
 
-.fish_card img {
+.fish_card img { /* Styling for the fish image */
     max-width: 100%;
     height: auto; /* Maintain aspect ratio */
     max-height: 100px; /* Cap the maximum height for the image */
@@ -344,7 +334,7 @@ body {
     margin-bottom: 10px;
 }
 
-.fish_card h3 {
+.fish_card h3 { /* Styling for the fish name */
     margin: 0;
     text-align: left;
     flex-grow: 1; /* Allow the caption to grow and fill available space */
@@ -357,31 +347,36 @@ body {
 
 /* CSS STYLING FOR PROFILE PAGE */
 
+/* Hidden information, positioned off-screen when in larger view (visible when in phone view) */
 .hidden_info {
     position: absolute;
     left: -9000px;
 }
 
+/* Container for the profile page */
 .profile_container {
     margin: 0 auto;
     padding: 20px;
 }
 
-.profile_container h3{
+/* Centered heading for the profile page */
+.profile_container h3 {
     text-align: center;
 }
 
+/* Header section of the profile page, containing profile image and details */
 .profile_header {
     display: flex;
     align-items: center;
     margin-bottom: 20px;
 }
 
+/* Wrapper for the profile image, ensuring it is circular and centered */
 .profile_image_wrapper {
     position: relative;
     width: 150px;
     height: 150px;
-    border-radius: 50%;
+    border-radius: 50%; /* Circular border radius */
     margin-right: 20px;
     overflow: hidden;
     cursor: pointer;
@@ -390,13 +385,15 @@ body {
     justify-content: center;
 }
 
+/* Profile image styling, ensuring it covers the entire area */
 .profile_image {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: filter 0.3s ease-in-out;
+    transition: filter 0.3s ease-in-out; /* Smooth transition for filter, UX */
 }
 
+/* Overlay for the profile image, appearing on hover */
 .profile_overlay {
     position: absolute;
     top: 0;
@@ -412,44 +409,51 @@ body {
     transition: opacity 0.3s ease-in-out;
 }
 
+/* Show the overlay when hovering over the profile image wrapper */
 .profile_image_wrapper:hover .profile_overlay {
     opacity: 1;
 }
 
+/* Icon inside the profile overlay */
 .profile_overlay ion-icon {
     color: white;
     font-size: 30px;
 }
 
+/* Main heading for profile details */
 .profile_details h1 {
     margin: 0;
     font-size: 45px;
 }
 
+/* Paragraph styling for profile details */
 .profile_details p {
     margin: 5px 0;
     color: gray;
 }
 
+/* Overlay for posts, appearing on hover, contains the edit and delete buttons */
 .post_overlay {
-    position: absolute;
+    position: absolute; /* Position the overlay on top of the post */
     top: 0;
     left: 0;
-    width: 100%;
+    width: 100%; /* Cover the entire post */
     height: 100%;
-    border-radius: 10px;
+    border-radius: 5px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay */
     opacity: 0;
     transition: opacity 0.3s;
 }
 
+/* Show the post overlay when hovering over the post */
 .post:hover .post_overlay {
     opacity: 1;
 }
 
+/* Button styling for editing the profile */
 .edit_profile_btn {
     padding: 10px 20px;
     background-color: #007bff;
@@ -459,10 +463,12 @@ body {
     cursor: pointer;
 }
 
+/* Change background color on hover for the edit profile button */
 .edit_profile_btn:hover {
     background-color: #0056b3;
 }
 
+/* Button styling for editing and deleting posts */
 .edit_post_btn,
 .delete_post_btn {
     padding: 10px 20px;
@@ -474,11 +480,23 @@ body {
     margin: 5px;
 }
 
+/* Change background color on hover for edit and delete post buttons, UX */
 .edit_post_btn:hover,
 .delete_post_btn:hover {
-    background-color: #0056b3;
+    background-color: #0056b3; 
 }
 
+.mfa_checkbox { /* Styling for the MFA checkbox on edit profile modal */
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
+    margin-bottom: 20px;
+    margin-top: 20px;
+}
+
+#mfa {
+    margin-bottom: 10px;
+}
 
 /* Modal styling for javascript popups*/
 .modal {
@@ -540,7 +558,7 @@ body {
     background-color: #0056b3;
 }
 
-.close {
+.close { /* Styling for the close button */
     color: #aaa;
     float: right;
     font-size: 28px;
@@ -558,7 +576,7 @@ body {
 .open-modal-btn {
     position: fixed;
     bottom: 20px;
-    left: (50% + clamp(150px, 20%, 300px));
+    left: (50% + clamp(150px, 20%, 300px)); /* Fixes it to the center of the content section, not center of whole page */
     background-color: #007bff;
     color: white;
     border: none;
@@ -574,8 +592,70 @@ body {
     z-index: 2; /* Ensure it appears above other elements */
 }
 
-.open-modal-btn:hover {
+.open-modal-btn:hover { /* Change background color on hover, UX improvement */
     background-color: #0056b3;
+}
+
+/* STYLING FOR ADMIN HOME PAGE */
+
+#admin_home_container { 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 80%; /* Prevents overlap with the sidebar */
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color:rgba(255, 255, 255, 0.5)
+}
+
+.admin-buttons { /* Styling for the admin buttons section at the top of the content */
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.admin-button { /* Styling for the admin buttons linking to other pages for UX, as well as the download log file button */
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    max-height: 20px;
+    width: 140px;
+}
+
+.admin-button:hover { /* Change background color on hover, UX improvement */
+    background-color: #0056b3;
+}
+
+/* CSS STYLING FOR THE USER NUMBER CHART */
+
+#chart-container { /* Styling for the chart container with graph of logged in users */
+    width: 100%;
+    height: 250px; /* Fixed height */
+    margin-top: 20px;
+    padding: 10px;
+    position: relative; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f9f9f9; /* Light background for visibility */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#loggedInUsersChart { /* Styling for the chart itself */
+    width: 100%;
+    height: 100%;
 }
 
 /* CSS STYLING FOR ADMIN TABLES */
@@ -606,7 +686,7 @@ table th {
     color: white;
 }
 
-table tr:nth-child(even) {
+table tr:nth-child(even) { /* Alternate row colors for better readability, UI improvement */
     background-color: #f9f9f9;
 }
 
@@ -618,7 +698,7 @@ table tr:hover {
     background-color: lightgrey;
 }
 
-table a {
+table a { /* Styling for table links, makes them stand out for UI */
     color: #007bff;
     text-decoration: none;
 }
@@ -627,22 +707,22 @@ table a:hover {
     text-decoration: underline;
 }
 
-/* Styling for the fishdex management form */
+/* Styling for the fishdex clear data form */
 form {
     background-color: #f9f9f9;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add a subtle shadow for UI */
     margin-bottom: 20px;
 }
 
-form label {
+form label { /* Styling for the form labels */
     display: block;
     margin-bottom: 8px;
     font-weight: bold;
 }
 
-form input[type="text"] {
+form input[type="text"] { /* Styling for the form input fields */
     width: 90%;
     padding: 10px;
     margin-bottom: 10px;
@@ -651,7 +731,7 @@ form input[type="text"] {
 }
 
 form button {
-    background-color: #007bff;
+    background-color: #007bff;  /* Styling for the form button, consistent with all other buttons on the site */
     color: white;
     padding: 10px 20px;
     border: none;
@@ -659,32 +739,8 @@ form button {
     cursor: pointer;
 }
 
-form button:hover {
+form button:hover { /* Change background color on hover, UX improvement */
     background-color: #0056b3;
-}
-
-/* CSS STYLING FOR THE USER NUMBER CHART */
-
-#chart-container {
-    width: 30%; /* Adjust width as needed */
-    max-width: 400px; /* Prevents excessive growth */
-    height: 250px; /* Fixed height */
-    margin-top: 20px; /* Space below "Admin Dashboard" heading */
-    padding: 10px;
-    position: relative; /* Ensures it stays inside #content */
-    left: 0; /* Align to the left inside #content */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #f9f9f9; /* Light background for visibility */
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-#loggedInUsersChart {
-    width: 100%;
-    height: 100%;
 }
 
 /* CSS STYLING FOR RESPONSIVE STUFF */
@@ -693,37 +749,39 @@ form button:hover {
     body {
         min-height: 95vh;
     }
-
-    #sidebar {
+ 
+    #sidebar { /* THE SIDEBAR IS NOW FIXED TO THE BOTTOM OF THE SCREEN WITH ONLY THE ICONS SHOWING, FAR BETTER FOR MOBILE */
         position: fixed;
-        bottom: 0;
-        top: 93%;
+        bottom: 0; /* Sidebar fixed to the bottom */
+        top: 93%; /* Sidebar spans 7% of the screen */
         width: 100%; /* Sidebar spans full width */
         height: auto; /* Adjusts height automatically */
         border: none;
         margin-top: none;
-        z-index: 10000;
+        z-index: 10000; /* Ensure it appears above everything */
         display: flex;
-        justify-content: space-evenly;
+        justify-content: space-evenly; /* Evenly space the icons */
     }
 
-    #sidebar h1, #sidebar a {
+    #sidebar h1, #sidebar a { /* Hide the sidebar header and list items */
         visibility: hidden;
         position: fixed;
         left: -9000px;
     }
 
-    #sidebar h1 {
+    #sidebar h1 { /* Hide the sidebar header */
         position: fixed;
         left: -9000px;
     }
 
-    #sidebar ion-icon {
+    #sidebar ion-icon { /* Show only the icons */
         visibility: visible;
         position: fixed;
         top: 94%;
         font-size: 50px;
     }
+
+    /* manually placed evenly across the screen */
 
     .nav_1 {
         left: 10%;
@@ -745,23 +803,24 @@ form button:hover {
         left: 80%;
     }
 
-    #content {
+    #content { /* Adjust the content section to fit the sidebar */
         margin-left: 0; /* Remove left margin on small screens */
         width: 100%;
         padding-bottom:  50px;
     }
 
-    .posts {
+    .posts { /* Adjust the posts section to fit the new sidebar styling */
         width: 90%;
         margin: 0 auto;
     }
 
-    .open-modal-btn {
+    .open-modal-btn { /* Adjust the position of the open modal button to the direct center of the screen */
         bottom: 10%;
         left: 50%;
+        transform: translateX(-50%);
     }
 
-    .fish_ai_insert {
+    .fish_ai_insert { /* Adjust the fish identifier section to fit the new sidebar styling */
         position: absolute;
         top: 0;
         left: 0; /* Leaves space for the sidebar */
@@ -771,11 +830,17 @@ form button:hover {
     }
 
     .found_fish, .unfound_fish {
-        grid-template-columns: repeat(2, 1fr); /* Create a 3-column grid */
+        grid-template-columns: repeat(2, 1fr); /* Create a 2-column grid instead of 3 column */
         width: 100%;
+        margin-left: 0;
+    }
+ 
+    .fish_card { 
+        width: 145px; /* Adjust the minimum width of the fish cards, slightly smaller now */
+        height: 140px; /* Adjust the maximum height of the fish cards, slightly smaller now */
     }
 
-    .hidden_info {
+    .hidden_info { /* Show hidden information on small screens */
         position: relative;
         left: 0;
     }
@@ -816,5 +881,11 @@ form button:hover {
         white-space: nowrap; /* Prevent text from wrapping */
         font-weight: bold; /* Bold labels */
         text-transform: uppercase; /* Uppercase labels */
+    }
+
+    .admin-buttons {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* Create a 2-column grid for admin buttons */
+        margin-bottom: 0;
     }
 }

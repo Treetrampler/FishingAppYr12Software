@@ -4,14 +4,16 @@
 <h1>Manage Fish-Dex</h1>
 
 <h3>Wipe User's FishDex Data</h3>
-<form action="{{ url_for('wipe_fishdex') }}" method="post">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<!-- The form for wiping a users fishdex -->
+<form action="{{ url_for('wipe_fishdex') }}" method="post"> 
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> <!-- CSRF validation -->
     <label for="username">Username:</label>
     <input type="text" id="username" name="username" placeholder="Enter username" required>
     <button type="submit">Wipe FishDex Data</button>
 </form>
 
 <h3>FishDex Leaderboard</h3>
+<!-- Creating the table that displays the leaderboard -->
 <table>
     <thead>
         <tr>
@@ -21,7 +23,7 @@
         </tr>
     </thead>
     <tbody>
-        {% for user in leaderboard %}
+        {% for user in leaderboard %} <!-- Logic for displaying the user leaderboard goes here -->
         <tr>
             <td  data-label="Rank">{{ loop.index }}</td>
             <td  data-label="Username">{{ user.username }}</td>

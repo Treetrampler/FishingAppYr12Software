@@ -3,57 +3,61 @@
 {% block body %}
 
 <div id="content">
-    {% if 'user_id' in session %}
-        <!-- Button to open the modal -->
+    {% if 'user_id' in session %} <!-- If the user is logged in, they are allowed to make a post -->
+        <!-- Button to open the modal that allows users to create a post (the blue post button at the bottom of the home page) -->
         <button class="open-modal-btn" onclick="openCreatePostModal()">+</button>
 
-        <!-- Modal Form -->
+        <!-- Modal Form for creating the posts -->
         <div id="createPostModal" class="modal">
             <div class="modal-content">
-                <span class="close" onclick="closeCreatePostModal()">&times;</span>
+                <span class="close" onclick="closeCreatePostModal()">&times;</span> <!-- Button to close the modal in the top right corner -->
                 <h2>Create Post</h2>
                 <form action="{{ url_for('create_post') }}" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <input type="file" name="image" accept="image/*" onchange="previewPostImage(event)" required>
-                    <img id="PostImagePreview" src="#" alt="Post Image Preview" style="display: none; margin-top: 10px; margin-bottom: 10px; max-width: 100%;">
-                    <textarea name="caption" placeholder="Add a caption..."></textarea>
+                    <input type="file" name="image" accept="image/*" onchange="previewPostImage(event)" required> <!-- The on change event triggers the preview appearing -->
+                    <img id="PostImagePreview" src="#" alt="Post Image Preview" style="display: none; margin-top: 10px;  margin-bottom: 10px; max-width: 100%;"> <!-- Sets up the preview image styling once a user has selected a file, hidden at first -->
+                    <textarea name="caption" placeholder="Add a caption... (Only the following special characters are allowed: . , - _)"></textarea> <!-- Gives a bit of information about caption requirements -->
                     <button type="submit">Post</button>
                 </form>
             </div>
         </div>
     {% endif %}
     <div class="posts">
-        {% if posts %}
-            {% for post in posts %}
+        {% if posts %} <!-- If there are posts in the database -->
+            {% for post in posts %} <!-- For each post in the database, display the post -->
                 <div class="post">
                     <div class="post_header">
-                        {% if post[3] %}
+                        {% if post[3] %} <!-- If the user has a profile picture, display it -->
                             <img src="{{ url_for('static', filename=post[3]) }}" alt="Profile Image" class="post_profile_image">
                         {% else %}
                             <img src="{{ url_for('static', filename='/images/blank_profile_pic.png') }}" alt="Profile Image" class="post_profile_image">
                         {% endif %}
                         <h4>{{ post[2] }}</h4>
                     </div>
-                    <img src="{{ url_for('static', filename=post[0]) }}" alt="Post Image">
+                    <img src="{{ url_for('static', filename=post[0]) }}" alt="Post Image" class="post_image">
                     <div class="post_footer">
+                        <i class="fa-heart {{ 'fas' if (session['user_id'] in likes_dict[post[4]])  else 'far' }} like-icon" onclick="toggleLike('{{ post[4] }}')"></i> <!-- Add a heart icon that toggles based on whether it is true -->
+                        <span class="like-count">{{ likes_dict[post[4]]|length }}</span> <!-- Display the number of likes -->
                         <p>{{ post[1] }}</p>
                     </div>
                 </div>
             {% endfor %}
-        {% else %}
+        {% else %} <!-- If there are no posts in the database -->
             <h2>Be the first to make a post!</h2>
         {% endif %}
     </div>
 
     <script>
+        // functions for opening and closing the post modal
         function openCreatePostModal() {
             document.getElementById('createPostModal').style.display = 'block';
         }
-
+    
         function closeCreatePostModal() {
             document.getElementById('createPostModal').style.display = 'none';
         }
-
+    
+        // Function to preview the image that the user has selected for their post
         function previewPostImage(event) {
             const reader = new FileReader();
             reader.onload = function() {
@@ -63,7 +67,35 @@
             };
             reader.readAsDataURL(event.target.files[0]);
         }
-    </script>
+    
+        // Function to toggle like/unlike
+        function toggleLike(postId) {
+            const likeIcon = event.target;
+            const isLiked = likeIcon.classList.contains('fas');
+            const url = isLiked ? `/unlike_post/${postId}` : `/like_post/${postId}`;
+    
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    likeIcon.classList.toggle('fas');
+                    likeIcon.classList.toggle('far');
+                    const likeCountSpan = likeIcon.nextElementSibling;
+                    let likeCount = parseInt(likeCountSpan.textContent);
+                    likeCountSpan.textContent = isLiked ? likeCount - 1 : likeCount + 1;
+                } else {
+                    alert(data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>  
 </div>
 
 {% endblock %}
